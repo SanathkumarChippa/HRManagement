@@ -1,0 +1,78 @@
+<!-- File Path: src/HRManagement.Web/Views/Employees/Index.cshtml -->
+<!-- Purpose: Employee directory list view. -->
+<!-- Code Explanation: Renders employee profiles in a bootstrap table integrated with DataTables.net. -->
+
+@model IEnumerable<HRManagement.Domain.Entities.Employee>
+@{
+    ViewData["Title"] = "Employee Directory";
+    ViewData["BreadcrumbActive"] = "Employees";
+}
+
+<div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold m-0">Employee Directory</h4>
+            <p class="text-secondary small m-0">View and manage staff details across the company.</p>
+        </div>
+        @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
+        {
+            <a asp-action="Create" class="btn btn-primary btn-sm px-4"><i class="fa-solid fa-plus me-2"></i>Add Employee</a>
+        }
+    </div>
+
+    <div class="table-responsive">
+        <table id="employeeTable" class="table table-hover align-middle" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold text-primary">@emp.EmployeeCode</td>
+                        <td>@emp.FirstName @emp.LastName</td>
+                        <td>@emp.Email</td>
+                        <td>@emp.Department?.Name</td>
+                        <td>@emp.Designation</td>
+                        <td>
+                            <span class="badge @(emp.EmploymentStatus == "Active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") px-3 py-2">
+                                @emp.EmploymentStatus
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-secondary" title="View Profile"><i class="fa-solid fa-eye"></i></a>
+                                @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-primary" title="Edit Profile"><i class="fa-solid fa-pen"></i></a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#employeeTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                language: {
+                    searchPlaceholder: "Search staff..."
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,114 @@
+<!-- File Path: src/HRManagement.Web/Views/Audit/Index.cshtml -->
+<!-- Purpose: System audit log viewer page. -->
+<!-- Code Explanation: Renders security and transaction logs in a detailed list. -->
+
+@model IEnumerable<HRManagement.Domain.Entities.AuditLog>
+@{
+    ViewData["Title"] = "Audit Logs";
+    ViewData["BreadcrumbActive"] = "Audit Logs";
+}
+
+<div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+    <div class="mb-4">
+        <h4 class="fw-bold m-0 text-gradient">System Audit Logs</h4>
+        <p class="text-secondary small m-0">Review transactional history and change tracking data across all databases.</p>
+    </div>
+
+    <div class="table-responsive">
+        <table id="auditTable" class="table table-hover align-middle" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Table</th>
+                    <th>PK</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model)
+                {
+                    <tr>
+                        <td class="small text-secondary">@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="fw-semibold">@log.UserId</span></td>
+                        <td>
+                            @switch (log.Action)
+                            {
+                                case "INSERT":
+                                    <span class="badge bg-success-subtle text-success px-2 py-1">Insert</span>
+                                    break;
+                                case "UPDATE":
+                                    <span class="badge bg-primary-subtle text-primary px-2 py-1">Update</span>
+                                    break;
+                                case "DELETE":
+                                    <span class="badge bg-danger-subtle text-danger px-2 py-1">Delete</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@log.Action</span>
+                                    break;
+                            }
+                        </td>
+                        <td><code class="text-secondary fw-semibold">@log.TableName</code></td>
+                        <td>@log.PrimaryKey</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                            {
+                                <button class="btn btn-sm btn-outline-secondary view-details-btn" 
+                                        data-old="@log.OldValues" 
+                                        data-new="@log.NewValues" 
+                                        data-action="@log.Action">
+                                    <i class="fa-solid fa-code me-1"></i>View Changes
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">No modifications</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#auditTable').DataTable({
+                responsive: true,
+                order: [[0, "desc"]],
+                pageLength: 10,
+                language: {
+                    searchPlaceholder: "Search logs..."
+                }
+            });
+
+            $('.view-details-btn').on('click', function () {
+                var oldVals = $(this).data('old');
+                var newVals = $(this).data('new');
+                var action = $(this).data('action');
+
+                var oldHtml = oldVals ? '<pre class="text-start p-2 bg-dark text-white rounded small" style="max-height:180px; overflow-y:auto;">' + JSON.stringify(oldVals, null, 2) + '</pre>' : '<span class="text-muted">None</span>';
+                var newHtml = newVals ? '<pre class="text-start p-2 bg-dark text-white rounded small" style="max-height:180px; overflow-y:auto;">' + JSON.stringify(newVals, null, 2) + '</pre>' : '<span class="text-muted">None</span>';
+
+                Swal.fire({
+                    title: 'Audit Log Details (' + action + ')',
+                    html: '<div class="row text-start">' +
+                          '  <div class="col-md-6 mb-2">' +
+                          '    <label class="fw-bold small text-secondary">Old Values</label>' + oldHtml +
+                          '  </div>' +
+                          '  <div class="col-md-6 mb-2">' +
+                          '    <label class="fw-bold small text-secondary">New Values</label>' + newHtml +
+                          '  </div>' +
+                          '</div>',
+                    width: '750px',
+                    confirmButtonText: 'Close',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)'
+                });
+            });
+        });
+    </script>
+}

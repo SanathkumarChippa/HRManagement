@@ -1,0 +1,90 @@
+<!-- File Path: src/HRManagement.Web/Views/Profile/Index.cshtml -->
+<!-- Purpose: Logged-in user profile view. -->
+<!-- Code Explanation: Renders details of the currently authenticated employee. -->
+
+@model HRManagement.Domain.Entities.Employee
+@{
+    ViewData["Title"] = "My Profile";
+    ViewData["BreadcrumbActive"] = "My Profile";
+}
+
+<div class="row g-4">
+    <!-- User summary card -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm p-4 text-center h-100" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <div class="mx-auto bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                <span class="fs-1 fw-bold">@Model.FirstName[0]@Model.LastName[0]</span>
+            </div>
+            <h4 class="fw-bold m-0">@Model.FirstName @Model.LastName</h4>
+            <p class="text-secondary small mb-3">@Model.Designation</p>
+            <span class="badge bg-success-subtle text-success px-3 py-2">@Model.EmploymentStatus</span>
+
+            <hr class="my-4" style="border-color: var(--border-color);" />
+
+            <div class="text-start">
+                <div class="mb-2">
+                    <span class="text-secondary small d-block">Employee Code</span>
+                    <span class="fw-semibold">@Model.EmployeeCode</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-secondary small d-block">Department</span>
+                    <span class="fw-semibold">@Model.Department?.Name</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-secondary small d-block">Date of Joining</span>
+                    <span class="fw-semibold">@Model.DateOfJoining.ToString("yyyy-MM-dd")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User details card -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-4 h-100" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <div class="mb-4">
+                <h4 class="fw-bold m-0">Account Details</h4>
+                <p class="text-secondary small m-0">Manage and review your corporate profile parameters.</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small">First Name</label>
+                    <input class="form-control" value="@Model.FirstName" disabled />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small">Last Name</label>
+                    <input class="form-control" value="@Model.LastName" disabled />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small">Email Address</label>
+                    <input class="form-control" value="@Model.Email" disabled />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small">Phone Number</label>
+                    <input class="form-control" value="@Model.PhoneNumber" disabled />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small">Gender</label>
+                    <input class="form-control" value="@Model.Gender" disabled />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-secondary small">Reports To (Manager)</label>
+                    <input class="form-control" value="@(Model.Manager != null ? $"{Model.Manager.FirstName} {Model.Manager.LastName}" : "None")" disabled />
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 justify-content-end mt-5">
+                <a asp-action="ChangePassword" class="btn btn-outline-primary"><i class="fa-solid fa-key me-2"></i>Change Password</a>
+                <a asp-action="Settings" class="btn btn-primary"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+            </div>
+        </div>
+    </div>
+</div>

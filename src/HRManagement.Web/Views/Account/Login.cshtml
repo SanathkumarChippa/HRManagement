@@ -1,0 +1,98 @@
+<!-- File Path: src/HRManagement.Web/Views/Account/Login.cshtml -->
+<!-- Purpose: Premium user login screen. -->
+<!-- Code Explanation: Implements centered panel layouts, input icon overlays, validation alerts, and responsive templates. -->
+
+@model HRManagement.Application.Models.Identity.AuthRequest
+@{
+    Layout = null;
+    ViewData["Title"] = "Sign In";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HR Management</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #f1f5f9;
+        }
+        .login-box {
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+        }
+        .form-control {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            color: #f8fafc;
+            padding-left: 2.75rem;
+        }
+        .form-control:focus {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: #2563eb;
+            color: #fff;
+            box-shadow: none;
+        }
+        .input-group-text-overlay {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="text-center mb-4">
+            <div class="text-primary fs-1 mb-2">
+                <i class="fa-solid fa-people-roof"></i>
+            </div>
+            <h4 class="fw-bold mb-1">HR Platform</h4>
+            <p class="text-secondary small">Enter credentials to access your dashboard</p>
+        </div>
+
+        <form asp-action="Login" method="post" autocomplete="off">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+            <div class="mb-3 position-relative">
+                <span class="input-group-text-overlay"><i class="fa-solid fa-envelope"></i></span>
+                <input asp-for="Email" class="form-control form-control-lg fs-6" placeholder="name@company.com" required />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4 position-relative">
+                <span class="input-group-text-overlay"><i class="fa-solid fa-lock"></i></span>
+                <input asp-for="Password" type="password" class="form-control form-control-lg fs-6" placeholder="••••••••" required />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 fs-6 fw-semibold py-2">
+                <i class="fa-solid fa-right-to-bracket me-2"></i>Sign In
+            </button>
+        </form>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

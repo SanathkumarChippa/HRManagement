@@ -35,15 +35,6 @@ namespace HRManagement.Persistence
         {
             base.OnModelCreating(builder);
 
-            // 1. Rename ASP.NET Identity Tables to cleaner Enterprise names
-            builder.Entity<ApplicationUser>().ToTable("Users");
-            builder.Entity<ApplicationRole>().ToTable("Roles");
-            builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
-            builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
-            builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
-            builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
-            builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
-
             // Custom ApplicationUser mappings
             builder.Entity<ApplicationUser>(entity =>
             {
@@ -176,6 +167,16 @@ namespace HRManagement.Persistence
                 entity.ToTable("RefreshTokens");
                 entity.Property(r => r.Token).IsRequired().HasMaxLength(256);
             });
+
+            // Automatically apply the 'kumarcapstone_' prefix to all tables
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                var tableName = entityType.GetTableName();
+                if (!string.IsNullOrEmpty(tableName))
+                {
+                    entityType.SetTableName("kumarcapstone_" + tableName);
+                }
+            }
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

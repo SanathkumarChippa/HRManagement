@@ -1,0 +1,23 @@
+<!-- File Path: src/HRManagement.Web/Views/Account/AccessDenied.cshtml -->
+<!-- Purpose: Access Denied screen shown for unauthorized operations. -->
+<!-- Code Explanation: Renders an access denied message with redirect links to return to safety. -->
+
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="text-danger mb-4" style="font-size: 5rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 class="fw-bold">Access Denied</h2>
+            <p class="text-secondary mb-4">You do not have the required role privileges to access this area or execute this action.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary px-4"><i class="fa-solid fa-arrow-left me-2"></i>Go Back</a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary px-4"><i class="fa-solid fa-house me-2"></i>Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>

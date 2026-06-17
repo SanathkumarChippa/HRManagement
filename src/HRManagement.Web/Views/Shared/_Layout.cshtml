@@ -1,50 +1,102 @@
-﻿<!DOCTYPE html>
+<!-- File Path: src/HRManagement.Web/Views/Shared/_Layout.cshtml -->
+<!-- Purpose: Master layout file for the MVC application. -->
+<!-- Code Explanation: Implements light/dark mode preference evaluation inside <head> to prevent flashing. Links CSS and JS dependencies (Bootstrap, DataTables, SweetAlert2, Toastr, Chart.js) via CDNs, and structures sidebars and navbars around the dynamic RenderBody content. -->
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - HRManagement.Web</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - HR Management Platform</title>
+
+    <!-- HSL Theme script to prevent flickering -->
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
+
+    <!-- FontAwesome & Icon Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <!-- Third-Party Library Styling CDNs -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    
+    <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/HRManagement.Web.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HRManagement.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+    <div class="app-container">
+        <!-- Collapsible Left Sidebar Partial -->
+        @await Html.PartialAsync("_Sidebar")
+
+        <!-- Main Workspace Panel -->
+        <div class="main-content">
+            <!-- Top Navbar Partial -->
+            @await Html.PartialAsync("_Navbar")
+
+            <!-- Dynamic Body Context -->
+            <div class="content-body">
+                <!-- Breadcrumb Indicators -->
+                @await Html.PartialAsync("_Breadcrumbs")
+                
+                @RenderBody()
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+            <!-- Footer -->
+            <footer class="py-3 px-4 border-top text-muted mt-auto" style="background-color: var(--bg-secondary); border-color: var(--border-color) !important;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>&copy; 2026 - HR Management & Workforce Analytics Platform</span>
+                    <span>Version 1.0.0 (net8.0)</span>
+                </div>
+            </footer>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - HRManagement.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+    <!-- Core JQuery & Bootstrap Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Third-Party Functional CDNs -->
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Base UI Interactivity Scripts -->
+    <script>
+        $(document).ready(function () {
+            // Sidebar Toggle Control
+            $('#sidebarCollapse').on('click', function () {
+                $('.sidebar').toggleClass('collapsed');
+            });
+
+            // Dark Mode Selector
+            $('#themeToggle').on('click', function () {
+                let currentTheme = $('html').attr('data-bs-theme');
+                let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                $('html').attr('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Toggle toggle button visual indicator icon
+                $(this).find('i').toggleClass('fa-moon fa-sun');
+                toastr.success(`Switched to ${newTheme} mode.`);
+            });
+
+            // Adjust default toggle icon state based on theme selection
+            if ($('html').attr('data-bs-theme') === 'dark') {
+                $('#themeToggle').find('i').removeClass('fa-moon').addClass('fa-sun');
+            }
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

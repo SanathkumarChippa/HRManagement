@@ -1,0 +1,63 @@
+<!-- File Path: src/HRManagement.Web/Views/Shared/_Navbar.cshtml -->
+<!-- Purpose: Top navigation navbar containing page level quick tools. -->
+<!-- Code Explanation: Renders sidebar toggle controls, theme toggle, and user authentication profile buttons. -->
+
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid p-0">
+        <!-- Sidebar Collapse Toggle Button -->
+        <button type="button" id="sidebarCollapse" class="btn btn-outline-secondary border-0 me-3">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <span class="navbar-text fw-semibold d-none d-sm-inline-block text-secondary">
+            HR Management Platform
+        </span>
+
+        <div class="ms-auto d-flex align-items-center">
+            <!-- Theme Toggle Option -->
+            <button id="themeToggle" class="btn btn-link nav-link px-3 text-secondary border-0 shadow-none">
+                <i class="fa-solid fa-moon fs-5"></i>
+            </button>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <!-- Notifications Bell -->
+                <div class="dropdown me-3">
+                    <button class="btn btn-link nav-link position-relative text-secondary border-0 shadow-none" type="button" id="notifyDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-bell fs-5"></i>
+                        @await Component.InvokeAsync("UnreadNotificationCount")
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notifyDropdown" style="width: 280px; max-height: 400px; overflow-y: auto;">
+                        <li class="dropdown-header fw-bold border-bottom">Notifications</li>
+                        <div id="notificationList">
+                            <!-- Dynamically loaded notification text rows -->
+                            <li class="p-3 text-center text-muted small">Loading...</li>
+                        </div>
+                    </ul>
+                </div>
+
+                <!-- User Account Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary border-0 dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-user-circle fs-5 text-primary"></i>
+                        <span class="d-none d-md-inline">@User.Identity.Name</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenu">
+                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fa-solid fa-address-card me-2"></i>My Profile</a></li>
+                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Settings"><i class="fa-solid fa-sliders me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-power-off me-2"></i>Sign Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-sm px-4">Sign In</a>
+            }
+        </div>
+    </div>
+</nav>

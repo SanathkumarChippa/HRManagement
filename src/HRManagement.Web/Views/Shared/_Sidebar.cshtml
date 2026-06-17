@@ -1,0 +1,95 @@
+<!-- File Path: src/HRManagement.Web/Views/Shared/_Sidebar.cshtml -->
+<!-- Purpose: Collapsible left navigation sidebar. -->
+<!-- Code Explanation: Renders sidebar links dynamically based on User.IsInRole policies. Supports active tab state highlighting and collapses for mobile screens. -->
+
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <i class="fa-solid fa-people-roof me-2"></i>
+        <span>HR Platform</span>
+    </div>
+    <ul class="sidebar-menu">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <li>
+                <a asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <li>
+                    <a asp-controller="Employees" asp-action="Index">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Employees</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Departments" asp-action="Index">
+                        <i class="fa-solid fa-sitemap"></i>
+                        <span>Departments</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Audit" asp-action="Index">
+                        <i class="fa-solid fa-receipt"></i>
+                        <span>Audit Logs</span>
+                    </a>
+                </li>
+            }
+            else if (User.IsInRole("HR Manager"))
+            {
+                <li>
+                    <a asp-controller="Employees" asp-action="Index">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Employees</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Leaves" asp-action="Queue">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Leave Approvals</span>
+                    </a>
+                </li>
+            }
+            else // Employee Role
+            {
+                <li>
+                    <a asp-controller="Leaves" asp-action="Index">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span>Apply Leave</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Leaves" asp-action="History">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Leave History</span>
+                    </a>
+                </li>
+            }
+
+            <li>
+                <a asp-controller="Profile" asp-action="Index">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Profile" asp-action="Settings">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        }
+        else
+        {
+            <li>
+                <a asp-controller="Account" asp-action="Login">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Sign In</span>
+                </a>
+            </li>
+        }
+    </ul>
+</div>

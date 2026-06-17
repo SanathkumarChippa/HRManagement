@@ -1,0 +1,151 @@
+<!-- File Path: src/HRManagement.Web/Views/Leaves/Queue.cshtml -->
+<!-- Purpose: Manage leave approval queue. -->
+<!-- Code Explanation: Displays pending leave requests in a grid, allowing managers to approve or reject with comments via SweetAlert2 and AJAX. -->
+
+@model IEnumerable<HRManagement.Domain.Entities.LeaveRequest>
+@{
+    ViewData["Title"] = "Approval Queue";
+    ViewData["BreadcrumbActive"] = "Leave Queue";
+}
+
+<div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+    <div class="mb-4">
+        <h4 class="fw-bold m-0 text-gradient">Leave Approval Queue</h4>
+        <p class="text-secondary small m-0">Pending leave requests awaiting your decision.</p>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <div class="table-responsive">
+        <table id="queueTable" class="table table-hover align-middle" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Total Days</th>
+                    <th>Reason</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var lr in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">@lr.Employee?.FirstName @lr.Employee?.LastName</div>
+                            <div class="small text-secondary">@lr.Employee?.EmployeeCode</div>
+                        </td>
+                        <td>@lr.LeaveType?.Name</td>
+                        <td>@lr.StartDate.ToString("yyyy-MM-dd")</td>
+                        <td>@lr.EndDate.ToString("yyyy-MM-dd")</td>
+                        <td><span class="badge bg-secondary px-3 py-2">@lr.TotalDays days</span></td>
+                        <td><span class="text-truncate d-inline-block" style="max-width: 200px;" title="@lr.Reason">@lr.Reason</span></td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success px-3 approve-btn" data-id="@lr.Id">
+                                    <i class="fa-solid fa-check me-1"></i>Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger px-3 reject-btn" data-id="@lr.Id">
+                                    <i class="fa-solid fa-xmark me-1"></i>Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#queueTable').DataTable({
+                responsive: true,
+                order: [[4, "desc"]],
+                pageLength: 10,
+                language: {
+                    searchPlaceholder: "Search queue..."
+                }
+            });
+
+            // Action Handler
+            function processLeave(id, action, comment) {
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                var url = action === 'approve' ? '@Url.Action("Approve", "Leaves")' : '@Url.Action("Reject", "Leaves")';
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        comment: comment,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function () {
+                        toastr.error("An error occurred while processing the request.");
+                    }
+                });
+            }
+
+            $('.approve-btn').on('click', function () {
+                var id = $(this).data('id');
+                Swal.fire({
+                    title: 'Approve Request?',
+                    text: 'Optional approval comments:',
+                    input: 'text',
+                    inputPlaceholder: 'Add a comment...',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Approve',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        processLeave(id, 'approve', result.value);
+                    }
+                });
+            });
+
+            $('.reject-btn').on('click', function () {
+                var id = $(this).data('id');
+                Swal.fire({
+                    title: 'Reject Request?',
+                    text: 'Please provide a reason or comment:',
+                    input: 'text',
+                    inputPlaceholder: 'Reason for rejection...',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Reject',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'You need to write a rejection reason!'
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        processLeave(id, 'reject', result.value);
+                    }
+                });
+            });
+        });
+    </script>
+}

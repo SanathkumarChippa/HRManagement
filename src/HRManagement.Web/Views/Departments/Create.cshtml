@@ -1,0 +1,35 @@
+<!-- File Path: src/HRManagement.Web/Views/Departments/Create.cshtml -->
+<!-- Purpose: Create department form. -->
+<!-- Code Explanation: Renders form for adding a new department. -->
+
+@model HRManagement.Domain.Entities.Department
+@{
+    ViewData["Title"] = "Add Department";
+    ViewData["BreadcrumbActive"] = "Add Department";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <div class="mb-4">
+                <h4 class="fw-bold m-0">Create New Department</h4>
+                <p class="text-secondary small m-0">Define a new organization division in the directory.</p>
+            </div>
+
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold">Department Name</label>
+                    <input asp-for="Name" class="form-control" placeholder="e.g. Engineering, Human Resources" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

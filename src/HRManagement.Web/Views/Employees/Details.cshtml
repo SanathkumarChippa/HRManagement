@@ -1,0 +1,90 @@
+<!-- File Path: src/HRManagement.Web/Views/Employees/Details.cshtml -->
+<!-- Purpose: Detailed Employee Profile view. -->
+<!-- Code Explanation: Renders profile card headers, details lists, and a nested tab interface displaying active leave balances. -->
+
+@model HRManagement.Domain.Entities.Employee
+@{
+    ViewData["Title"] = "Employee Profile";
+    ViewData["BreadcrumbActive"] = "Profile Details";
+}
+
+<div class="row g-4">
+    <!-- Left Column: Quick Profile Card -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 text-center" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <div class="text-primary mb-3" style="font-size: 5rem;">
+                <i class="fa-solid fa-circle-user"></i>
+            </div>
+            <h4 class="fw-bold m-0">@Model.FirstName @Model.LastName</h4>
+            <p class="text-secondary small mb-3">@Model.Designation</p>
+            <span class="badge @(Model.EmploymentStatus == "Active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") px-3 py-2 fs-6 mb-4">
+                @Model.EmploymentStatus
+            </span>
+            <div class="border-top pt-3 text-start small">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Code:</span>
+                    <span class="fw-semibold">@Model.EmployeeCode</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Joined:</span>
+                    <span class="fw-semibold">@Model.DateOfJoining.ToString("yyyy-MM-dd")</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-secondary">Department:</span>
+                    <span class="fw-semibold">@Model.Department?.Name</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Full Profile Cards & Tab details -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm p-4 mb-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <h5 class="fw-bold mb-4">Contact Information</h5>
+            <div class="row g-3 small">
+                <div class="col-md-6">
+                    <span class="text-secondary d-block">Email Address</span>
+                    <span class="fw-semibold text-primary fs-6">@Model.Email</span>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-secondary d-block">Phone Number</span>
+                    <span class="fw-semibold fs-6">@Model.PhoneNumber</span>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-secondary d-block">Gender</span>
+                    <span class="fw-semibold fs-6">@Model.Gender</span>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-secondary d-block">Reporting Manager</span>
+                    <span class="fw-semibold fs-6">
+                        @(Model.Manager != null ? $"{Model.Manager.FirstName} {Model.Manager.LastName}" : "N/A")
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leave Balances Summary Cards -->
+        <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <h5 class="fw-bold mb-4">Active Leave Balances</h5>
+            <div class="row g-3">
+                @if (Model.LeaveBalances.Any())
+                {
+                    foreach (var bal in Model.LeaveBalances)
+                    {
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded" style="border-color: var(--border-color) !important;">
+                                <span class="text-secondary small fw-medium">@bal.LeaveType.Name</span>
+                                <h4 class="fw-bold m-0 mt-2">@(bal.AllocatedDays - bal.UsedDays - bal.PendingDays)d <span class="text-muted fs-6 font-normal">left</span></h4>
+                                <div class="mt-2 small text-secondary">Allocated: @bal.AllocatedDays | Used: @bal.UsedDays</div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center text-muted py-3">No leave allocations loaded for this employee.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

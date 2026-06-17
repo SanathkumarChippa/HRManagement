@@ -1,0 +1,121 @@
+<!-- File Path: src/HRManagement.Web/Views/Leaves/Index.cshtml -->
+<!-- Purpose: Leave application and balance summary view. -->
+<!-- Code Explanation: Renders employee leave balances and provides an AJAX form for new requests. -->
+
+@model HRManagement.Domain.Entities.LeaveRequest
+@{
+    ViewData["Title"] = "Apply for Leave";
+    ViewData["BreadcrumbActive"] = "Apply Leave";
+    var balances = ViewBag.Balances as IEnumerable<HRManagement.Domain.Entities.LeaveBalance>;
+}
+
+<div class="row g-4">
+    <!-- Balances Column -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm p-4 h-100" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <div class="mb-4">
+                <h4 class="fw-bold m-0 text-gradient">Leave Balances</h4>
+                <p class="text-secondary small m-0">Your current balance allocations for @DateTime.UtcNow.Year.</p>
+            </div>
+
+            <div class="row g-3">
+                @if (balances != null && balances.Any())
+                {
+                    foreach (var bal in balances)
+                    {
+                        var available = bal.AllocatedDays - bal.UsedDays - bal.PendingDays;
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                                <div class="text-secondary small fw-semibold">@bal.LeaveType?.Name</div>
+                                <h3 class="fw-bold my-1 text-primary">@available <span class="fs-6 fw-normal text-muted">days left</span></h3>
+                                <div class="small text-secondary mt-2">
+                                    Allocated: @bal.AllocatedDays | Used: @bal.UsedDays | Pending: @bal.PendingDays
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-warning">No leave balances found for the current year.</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Form Column -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <div class="mb-4">
+                <h4 class="fw-bold m-0">Request Leave</h4>
+                <p class="text-secondary small m-0">Submit a new request for approval.</p>
+            </div>
+
+            <form id="applyLeaveForm">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label for="leaveTypeId" class="form-label fw-semibold">Leave Type</label>
+                    <select id="leaveTypeId" name="leaveTypeId" class="form-select" asp-items="ViewBag.LeaveTypeId" required>
+                        <option value="">-- Select Category --</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="startDate" class="form-label fw-semibold">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="endDate" class="form-label fw-semibold">End Date</label>
+                    <input type="date" id="endDate" name="endDate" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="reason" class="form-label fw-semibold">Reason</label>
+                    <textarea id="reason" name="reason" class="form-control" rows="3" placeholder="Provide context for approval..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-2 py-2 fw-semibold">Submit Request</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#applyLeaveForm').on('submit', function (e) {
+                e.preventDefault();
+                
+                var data = {
+                    leaveTypeId: $('#leaveTypeId').val(),
+                    startDate: $('#startDate').val(),
+                    endDate: $('#endDate').val(),
+                    reason: $('#reason').val(),
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                };
+
+                $.ajax({
+                    url: '@Url.Action("Apply", "Leaves")',
+                    type: 'POST',
+                    data: data,
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("History", "Leaves")';
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function () {
+                        toastr.error("An error occurred while submitting your request.");
+                    }
+                });
+            });
+        });
+    </script>
+}

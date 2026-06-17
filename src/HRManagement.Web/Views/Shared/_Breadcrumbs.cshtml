@@ -1,0 +1,17 @@
+<!-- File Path: src/HRManagement.Web/Views/Shared/_Breadcrumbs.cshtml -->
+<!-- Purpose: Breadcrumbs navigation partial. -->
+<!-- Code Explanation: Renders standard Bootstrap breadcrumb structures referencing ViewData. -->
+
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-transparent p-0 m-0">
+        <li class="breadcrumb-item">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none">
+                <i class="fa-solid fa-house-chimney me-1 small"></i>Home
+            </a>
+        </li>
+        @if (ViewData["BreadcrumbActive"] != null)
+        {
+            <li class="breadcrumb-item active text-secondary" aria-current="page">@ViewData["BreadcrumbActive"]</li>
+        }
+    </ol>
+</nav>

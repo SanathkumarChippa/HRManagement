@@ -1,0 +1,80 @@
+<!-- File Path: src/HRManagement.Web/Views/Profile/Settings.cshtml -->
+<!-- Purpose: User and Portal settings page. -->
+<!-- Code Explanation: Renders notification preference toggles and links into standard themes. -->
+
+@{
+    ViewData["Title"] = "Portal Settings";
+    ViewData["BreadcrumbActive"] = "Settings";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <div class="mb-4">
+                <h4 class="fw-bold m-0 text-gradient">Portal Settings</h4>
+                <p class="text-secondary small m-0">Customize dashboard notifications and theme preferences.</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="Settings" method="post">
+                @Html.AntiForgeryToken()
+
+                <h5 class="fw-bold mb-3 mt-2">Display Mode</h5>
+                <div class="mb-4 p-3 rounded-3" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold d-block">System Color Theme</span>
+                            <span class="text-secondary small">Toggle between Light Mode and Dark Mode displays.</span>
+                        </div>
+                        <div>
+                            <!-- We can reuse layout theme toggles -->
+                            <button type="button" id="settingsThemeToggle" class="btn btn-outline-secondary btn-sm px-3">
+                                <i class="fa-solid fa-circle-half-stroke me-2"></i>Toggle Theme
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-3">Notification Rules</h5>
+                <div class="mb-4 p-3 rounded-3" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="emailNotifications" id="emailNotifications" checked value="true" />
+                        <label class="form-check-label fw-semibold" for="emailNotifications">Email Alerts</label>
+                        <div class="text-secondary small">Receive automatic notifications on leave requests and approvals via registered email.</div>
+                    </div>
+                    <hr style="border-color: var(--border-color);" />
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="inAppNotifications" id="inAppNotifications" checked value="true" />
+                        <label class="form-check-label fw-semibold" for="inAppNotifications">In-App Banner Notifications</label>
+                        <div class="text-secondary small">Show unread count indicators in top navigation headers.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">Save Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#settingsThemeToggle').on('click', function () {
+                var theme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                toastr.info("Theme updated to " + theme + " mode.");
+            });
+        });
+    </script>
+}
