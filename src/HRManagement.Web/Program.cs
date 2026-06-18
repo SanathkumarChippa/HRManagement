@@ -15,8 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<HRManagement.Web.Filters.MustChangePasswordFilter>();
+    options.Filters.Add<HRManagement.Web.Filters.ActiveEmployeeFilter>();
+});
 
 var app = builder.Build();
 
@@ -35,6 +40,8 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",

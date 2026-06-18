@@ -20,41 +20,58 @@
         }
     </div>
 
-    <div class="table-responsive">
-        <table id="departmentsTable" class="table table-hover align-middle" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Department Name</th>
-                    <th>Headcount</th>
-                    <th>Created Date</th>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <th>Actions</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var dept in Model)
-                {
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div class="mb-3 text-secondary" style="font-size: 3.5rem;">
+                <i class="fa-solid fa-sitemap text-muted"></i>
+            </div>
+            <h5 class="fw-bold">No departments found</h5>
+            <p class="text-secondary small">There are no department entities configured in the platform.</p>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Create" class="btn btn-primary btn-sm px-4 mt-2"><i class="fa-solid fa-plus me-2"></i>Add Department</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table id="departmentsTable" class="table table-hover align-middle" style="width:100%;">
+                <thead>
                     <tr>
-                        <td class="fw-semibold">@dept.Name</td>
-                        <td>
-                            <span class="badge bg-primary-subtle text-primary px-3 py-2">
-                                @(dept.Employees?.Count ?? 0) Employees
-                            </span>
-                        </td>
-                        <td>@dept.CreatedDate.ToString("yyyy-MM-dd")</td>
+                        <th>Department Name</th>
+                        <th>Headcount</th>
+                        <th>Created Date</th>
                         @if (User.IsInRole("Admin"))
                         {
-                            <td>
-                                <a asp-action="Edit" asp-route-id="@dept.Id" class="btn btn-sm btn-outline-primary" title="Edit Department"><i class="fa-solid fa-pen"></i></a>
-                            </td>
+                            <th>Actions</th>
                         }
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var dept in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@dept.Name</td>
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                                    @(dept.Employees?.Count ?? 0) Employees
+                                </span>
+                            </td>
+                            <td>@dept.CreatedDate.ToString("yyyy-MM-dd")</td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@dept.Id" class="btn btn-sm btn-outline-primary" title="Edit Department"><i class="fa-solid fa-pen"></i></a>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
 
 @section Scripts {

@@ -5,7 +5,7 @@
 <div class="sidebar">
     <div class="sidebar-brand">
         <i class="fa-solid fa-people-roof me-2"></i>
-        <span>HR Platform</span>
+        <span>HR Management Platform</span>
     </div>
     <ul class="sidebar-menu">
         @if (User.Identity?.IsAuthenticated == true)
@@ -32,11 +32,18 @@
                     </a>
                 </li>
                 <li>
+                    <a asp-controller="Leaves" asp-action="Queue">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Leave Approvals</span>
+                    </a>
+                </li>
+                <li>
                     <a asp-controller="Audit" asp-action="Index">
                         <i class="fa-solid fa-receipt"></i>
                         <span>Audit Logs</span>
                     </a>
                 </li>
+
             }
             else if (User.IsInRole("HR Manager"))
             {
@@ -75,12 +82,15 @@
                     <span>My Profile</span>
                 </a>
             </li>
-            <li>
-                <a asp-controller="Profile" asp-action="Settings">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>Settings</span>
-                </a>
-            </li>
+            @if (User.IsInRole("Admin"))
+            {
+                <li>
+                    <a asp-controller="Profile" asp-action="Settings">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            }
         }
         else
         {

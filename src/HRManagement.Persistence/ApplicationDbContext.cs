@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using HRManagement.Domain.Common;
 using HRManagement.Domain.Entities;
 
@@ -17,9 +18,12 @@ namespace HRManagement.Persistence
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        private readonly IHttpContextAccessor? _httpContextAccessor;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
             : base(options)
         {
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public DbSet<Employee> Employees { get; set; } = null!;
@@ -71,6 +75,7 @@ namespace HRManagement.Persistence
             {
                 entity.ToTable("Employees");
                 entity.HasIndex(e => e.EmployeeCode).IsUnique();
+                entity.HasIndex(e => e.Email).IsUnique();
                 entity.Property(e => e.EmployeeCode).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
@@ -93,6 +98,7 @@ namespace HRManagement.Persistence
             builder.Entity<Department>(entity =>
             {
                 entity.ToTable("Departments");
+                entity.HasIndex(d => d.Name).IsUnique();
                 entity.Property(d => d.Name).IsRequired().HasMaxLength(100);
             });
 
@@ -146,6 +152,7 @@ namespace HRManagement.Persistence
             {
                 entity.ToTable("Notifications");
                 entity.Property(n => n.Message).IsRequired().HasMaxLength(500);
+                entity.Property(n => n.TargetUrl).HasMaxLength(256);
 
                 entity.HasOne(n => n.Employee)
                     .WithMany(e => e.Notifications)
@@ -181,7 +188,8 @@ namespace HRManagement.Persistence
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            var auditEntries = OnBeforeSaveChanges("System"); // Defaulting to system, will be updated via user identity context in HTTP Pipeline
+            var username = _httpContextAccessor?.HttpContext?.User?.Identity?.Name ?? "System";
+            var auditEntries = OnBeforeSaveChanges(username);
 
             // Apply Soft Delete & Auditing logic
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
@@ -190,13 +198,13 @@ namespace HRManagement.Persistence
                 {
                     case EntityState.Added:
                         entry.Entity.CreatedDate = DateTime.UtcNow;
-                        entry.Entity.CreatedBy ??= "System";
+                        entry.Entity.CreatedBy ??= username;
                         entry.Entity.IsDeleted = false;
                         break;
 
                     case EntityState.Modified:
                         entry.Entity.UpdatedDate = DateTime.UtcNow;
-                        entry.Entity.UpdatedBy ??= "System";
+                        entry.Entity.UpdatedBy = username;
                         break;
 
                     case EntityState.Deleted:
@@ -204,7 +212,7 @@ namespace HRManagement.Persistence
                         entry.State = EntityState.Modified;
                         entry.Entity.IsDeleted = true;
                         entry.Entity.DeletedDate = DateTime.UtcNow;
-                        entry.Entity.DeletedBy ??= "System";
+                        entry.Entity.DeletedBy = username;
                         break;
                 }
             }
@@ -256,7 +264,23 @@ namespace HRManagement.Persistence
                             if (property.IsModified)
                             {
                                 auditEntry.ChangedProperties.Add(propertyName);
-                                auditEntry.AuditType = "Update";
+                                if (auditEntry.AuditType != "Delete" && auditEntry.AuditType != "Restore")
+                                {
+                                    auditEntry.AuditType = "Update";
+                                }
+
+                                if (propertyName == "IsDeleted" && property.OriginalValue is bool oldDel && property.CurrentValue is bool newDel)
+                                {
+                                    if (!oldDel && newDel)
+                                    {
+                                        auditEntry.AuditType = "Delete";
+                                    }
+                                    else if (oldDel && !newDel)
+                                    {
+                                        auditEntry.AuditType = "Restore";
+                                    }
+                                }
+
                                 auditEntry.OldValues[propertyName] = property.OriginalValue!;
                                 auditEntry.NewValues[propertyName] = property.CurrentValue!;
                             }

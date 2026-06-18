@@ -12,7 +12,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold m-0">Welcome back, @User.Identity?.Name!</h2>
-            <p class="text-secondary small m-0">Here is what's happening in your organization today.</p>
+            <p class="text-secondary small m-0">Please find below the updated summary of pending leaves.</p>
         </div>
     </div>
 
@@ -22,7 +22,7 @@
     @if (dashboardType == "Admin")
     {
         <div class="row g-4 mb-4">
-            <div class="col-md-3">
+            <div class="col-12 col-md">
                 <div class="kpi-card">
                     <div>
                         <span class="text-secondary small fw-medium">Total Employees</span>
@@ -31,7 +31,7 @@
                     <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md">
                 <div class="kpi-card">
                     <div>
                         <span class="text-secondary small fw-medium">Active Employees</span>
@@ -40,7 +40,7 @@
                     <div class="kpi-icon text-success" style="background-color: rgba(16, 185, 129, 0.1);"><i class="fa-solid fa-user-check"></i></div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md">
                 <div class="kpi-card">
                     <div>
                         <span class="text-secondary small fw-medium">Departments</span>
@@ -49,50 +49,76 @@
                     <div class="kpi-icon text-warning" style="background-color: rgba(245, 158, 11, 0.1);"><i class="fa-solid fa-sitemap"></i></div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md">
                 <div class="kpi-card">
                     <div>
                         <span class="text-secondary small fw-medium">Pending Approvals</span>
                         <h3 class="fw-bold mt-1 mb-0">@ViewBag.PendingApprovals</h3>
                     </div>
-                    <div class="kpi-icon text-danger" style="background-color: rgba(239, 68, 68, 0.1);"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="kpi-icon text-danger" style="background-color: rgba(239, 68, 68, 0.1);"><i class="fa-solid fa-business-time"></i></div>
+                </div>
+            </div>
+            <div class="col-12 col-md">
+                <div class="kpi-card">
+                    <div>
+                        <span class="text-secondary small fw-medium">New Hires</span>
+                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.NewHiresThisMonth</h3>
+                    </div>
+                    <div class="kpi-icon text-info" style="background-color: rgba(14, 165, 233, 0.1);"><i class="fa-solid fa-user-plus"></i></div>
+                </div>
+            </div>
+            <div class="col-12 col-md">
+                <div class="kpi-card">
+                    <div>
+                        <span class="text-secondary small fw-medium">Growth Rate</span>
+                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.GrowthPercentage%</h3>
+                    </div>
+                    <div class="kpi-icon text-primary" style="background-color: rgba(37, 99, 235, 0.1);"><i class="fa-solid fa-chart-line"></i></div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-md-8">
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
                 <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
                     <h5 class="fw-bold mb-3">Employee Growth Trajectory</h5>
-                    <canvas id="growthChart" height="260"></canvas>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="growthChart"></canvas>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px; height: 100%;">
-                    <h5 class="fw-bold mb-3">System Quick Actions</h5>
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Employees" asp-action="Create" class="btn btn-primary text-start"><i class="fa-solid fa-user-plus me-2"></i>Onboard Employee</a>
-                        <a asp-controller="Departments" asp-action="Index" class="btn btn-outline-secondary text-start"><i class="fa-solid fa-sitemap me-2"></i>View Departments</a>
-                        <a asp-controller="Audit" asp-action="Index" class="btn btn-outline-secondary text-start"><i class="fa-solid fa-receipt me-2"></i>Security Audit Log</a>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+                    <h5 class="fw-bold mb-3">Department Headcount Distribution</h5>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="adminDeptChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-    }
 
-    <!-- ============================================== -->
-    <!-- 2. HR MANAGER DASHBOARD VIEW                   -->
-    <!-- ============================================== -->
+        <div class="card border-0 shadow-sm p-4 mb-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+            <h5 class="fw-bold mb-3">System Quick Actions</h5>
+            <div class="d-flex flex-wrap gap-3">
+                <a asp-controller="Employees" asp-action="Create" class="btn btn-primary px-4"><i class="fa-solid fa-user-plus me-2"></i>Onboard Employee</a>
+                <a asp-controller="Departments" asp-action="Index" class="btn btn-outline-secondary px-4"><i class="fa-solid fa-sitemap me-2"></i>View Departments</a>
+                <a asp-controller="Audit" asp-action="Index" class="btn btn-outline-secondary px-4"><i class="fa-solid fa-receipt me-2"></i>Security Audit Log</a>
+            </div>
+        </div>
+    }
     else if (dashboardType == "HRManager")
     {
+        <!-- ============================================== -->
+        <!-- 2. HR MANAGER DASHBOARD VIEW                   -->
+        <!-- ============================================== -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="kpi-card">
                     <div>
-                        <span class="text-secondary small fw-medium">On Leave Today</span>
-                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.OnLeaveToday</h3>
+                        <span class="text-secondary small fw-medium">Active Staff</span>
+                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.ActiveEmployees</h3>
                     </div>
-                    <div class="kpi-icon text-danger" style="background-color: rgba(239, 68, 68, 0.1);"><i class="fa-solid fa-calendar-day"></i></div>
+                    <div class="kpi-icon text-success" style="background-color: rgba(16, 185, 129, 0.1);"><i class="fa-solid fa-users"></i></div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -107,19 +133,19 @@
             <div class="col-md-3">
                 <div class="kpi-card">
                     <div>
-                        <span class="text-secondary small fw-medium">Active Staff</span>
-                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.ActiveEmployees</h3>
+                        <span class="text-secondary small fw-medium">Leave Requests</span>
+                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.TotalLeaveRequests</h3>
                     </div>
-                    <div class="kpi-icon text-success" style="background-color: rgba(16, 185, 129, 0.1);"><i class="fa-solid fa-users"></i></div>
+                    <div class="kpi-icon text-primary" style="background-color: rgba(37, 99, 235, 0.1);"><i class="fa-solid fa-file-signature"></i></div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="kpi-card">
                     <div>
-                        <span class="text-secondary small fw-medium">Total Staff</span>
-                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.TotalEmployees</h3>
+                        <span class="text-secondary small fw-medium">On Leave Today</span>
+                        <h3 class="fw-bold mt-1 mb-0">@ViewBag.OnLeaveToday</h3>
                     </div>
-                    <div class="kpi-icon"><i class="fa-solid fa-user-group"></i></div>
+                    <div class="kpi-icon text-danger" style="background-color: rgba(239, 68, 68, 0.1);"><i class="fa-solid fa-calendar-day"></i></div>
                 </div>
             </div>
         </div>
@@ -128,35 +154,67 @@
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
                     <h5 class="fw-bold mb-3">Department Headcount Distribution</h5>
-                    <canvas id="deptChart" height="260"></canvas>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="deptChart"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
                     <h5 class="fw-bold mb-3">Leave Approval Ratios</h5>
-                    <canvas id="leaveRatioChart" height="260"></canvas>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="leaveRatioChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     }
-
-    <!-- ============================================== -->
-    <!-- 3. EMPLOYEE DASHBOARD VIEW                     -->
-    <!-- ============================================== -->
     else
     {
+        <!-- ============================================== -->
+        <!-- 3. EMPLOYEE DASHBOARD VIEW                     -->
+        <!-- ============================================== -->
         <div class="row g-4 mb-4">
             @if (ViewBag.LeaveBalances != null)
             {
                 foreach (var bal in ViewBag.LeaveBalances)
                 {
+                    string iconClass = "fa-calendar-days";
+                    string colorClass = "text-primary";
+                    string bgStyle = "";
+                    
+                    if (bal.LeaveType.Name == "Casual Leave" || bal.LeaveType.Name.Contains("Casual"))
+                    {
+                        iconClass = "fa-calendar-days";
+                        colorClass = "text-primary";
+                        bgStyle = "background-color: rgba(37, 99, 235, 0.1);";
+                    }
+                    else if (bal.LeaveType.Name == "Sick Leave" || bal.LeaveType.Name.Contains("Sick"))
+                    {
+                        iconClass = "fa-user-doctor";
+                        colorClass = "text-danger";
+                        bgStyle = "background-color: rgba(239, 68, 68, 0.1);";
+                    }
+                    else if (bal.LeaveType.Name == "Paid Leave" || bal.LeaveType.Name.Contains("Paid"))
+                    {
+                        iconClass = "fa-briefcase";
+                        colorClass = "text-success";
+                        bgStyle = "background-color: rgba(16, 185, 129, 0.1);";
+                    }
+                    else if (bal.LeaveType.Name == "Maternity Leave" || bal.LeaveType.Name.Contains("Maternity"))
+                    {
+                        iconClass = "fa-child";
+                        colorClass = "text-info";
+                        bgStyle = "background-color: rgba(14, 165, 233, 0.1);";
+                    }
+                    
                     <div class="col-md-3">
                         <div class="kpi-card">
                             <div>
                                 <span class="text-secondary small fw-medium">@bal.LeaveType.Name</span>
                                 <h3 class="fw-bold mt-1 mb-0">@(bal.AllocatedDays - bal.UsedDays - bal.PendingDays)d <span class="text-muted fs-6 font-normal">left</span></h3>
                             </div>
-                            <div class="kpi-icon text-primary"><i class="fa-solid fa-mug-hot"></i></div>
+                            <div class="kpi-icon @colorClass" style="@bgStyle"><i class="fa-solid @iconClass"></i></div>
                         </div>
                     </div>
                 }
@@ -170,18 +228,126 @@
         </div>
 
         <div class="row g-4">
-            <div class="col-md-8">
-                <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
-                    <h5 class="fw-bold mb-3">My Approved Leaves Trend</h5>
-                    <canvas id="myLeaveTrendChart" height="260"></canvas>
+            <!-- Left Side: My Profile Summary -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px; height: 100%;">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-circle text-primary me-2"></i>My Profile Summary</h5>
+                    @{
+                        var emp = ViewBag.Employee as HRManagement.Domain.Entities.Employee;
+                    }
+                    @if (emp != null)
+                    {
+                        <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                <i class="fa-solid fa-user-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">@emp.FirstName @emp.LastName</h6>
+                                <span class="text-secondary small">@emp.EmployeeCode</span>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled mb-0" style="font-size: 0.9rem;">
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-secondary">Designation:</span>
+                                <span class="fw-medium text-end">@emp.Designation</span>
+                            </li>
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-secondary">Department:</span>
+                                <span class="fw-medium text-end">@(emp.Department?.Name ?? "N/A")</span>
+                            </li>
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-secondary">Manager:</span>
+                                <span class="fw-medium text-end">@(emp.Manager != null ? $"{emp.Manager.FirstName} {emp.Manager.LastName}" : "N/A")</span>
+                            </li>
+                            <li class="mb-0 d-flex justify-content-between">
+                                <span class="text-secondary">Joining Date:</span>
+                                <span class="fw-medium text-end">@emp.DateOfJoining.ToString("yyyy-MM-dd")</span>
+                            </li>
+                        </ul>
+                        <div class="d-grid gap-2 mt-3 pt-3 border-top">
+                            <a asp-controller="Leaves" asp-action="Index" class="btn btn-sm btn-primary text-start"><i class="fa-solid fa-file-signature me-2"></i>Apply for Leave</a>
+                            <a asp-controller="Leaves" asp-action="History" class="btn btn-sm btn-outline-secondary text-start"><i class="fa-solid fa-clock-rotate-left me-2"></i>View History</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small">No profile summary found.</p>
+                    }
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px; height: 100%;">
-                    <h5 class="fw-bold mb-3">Quick Operations</h5>
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Leaves" asp-action="Index" class="btn btn-primary text-start"><i class="fa-solid fa-file-signature me-2"></i>Apply for Leave</a>
-                        <a asp-controller="Leaves" asp-action="History" class="btn btn-outline-secondary text-start"><i class="fa-solid fa-clock-rotate-left"></i>View History</a>
+
+            <!-- Right Side: Leave Requests & Notifications -->
+            <div class="col-lg-8">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px; height: 100%;">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold m-0"><i class="fa-solid fa-file-signature text-primary me-2"></i>My Leave Requests</h5>
+                                <a asp-controller="Leaves" asp-action="History" class="btn btn-sm btn-link text-decoration-none p-0">View All</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                                    <thead>
+                                        <tr class="text-secondary">
+                                            <th>Type</th>
+                                            <th>Dates</th>
+                                            <th>Days</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (ViewBag.RecentRequests != null && ((List<HRManagement.Domain.Entities.LeaveRequest>)ViewBag.RecentRequests).Any())
+                                        {
+                                            foreach (var req in ViewBag.RecentRequests)
+                                            {
+                                                var badgeClass = req.Status == "Approved" ? "bg-success" : (req.Status == "Pending" ? "bg-warning text-dark" : "bg-danger");
+                                                <tr>
+                                                    <td class="fw-semibold">@req.LeaveType.Name</td>
+                                                    <td>@req.StartDate.ToString("MM/dd") - @req.EndDate.ToString("MM/dd")</td>
+                                                    <td>@req.TotalDays d</td>
+                                                    <td><span class="badge @badgeClass">@req.Status</span></td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">No recent leave requests.</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px; height: 100%;">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-bell text-primary me-2"></i>My Notifications</h5>
+                            <div class="notification-list" style="max-height: 250px; overflow-y: auto;">
+                                @if (ViewBag.RecentNotifications != null && ((List<HRManagement.Domain.Entities.Notification>)ViewBag.RecentNotifications).Any())
+                                {
+                                    foreach (var notif in ViewBag.RecentNotifications)
+                                    {
+                                        var unreadStyle = notif.IsRead ? "" : "border-start border-primary border-3 ps-2 fw-semibold";
+                                        <div class="p-2 mb-2 border-bottom @unreadStyle" style="font-size: 0.85rem;">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="text-primary fw-medium">@notif.Type</span>
+                                                <span class="text-muted small">@notif.CreatedDate.ToString("MM/dd HH:mm")</span>
+                                            </div>
+                                            <p class="text-body m-0">@notif.Message</p>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fa-solid fa-bell-slash text-muted fs-4 mb-2 d-block"></i>
+                                        <span style="font-size: 0.85rem;">No notifications available.</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -192,20 +358,54 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Auto scroll to top
+            window.scrollTo(0, 0);
+            $(window).on('load', function () {
+                window.scrollTo(0, 0);
+            });
+            setTimeout(function() { window.scrollTo(0, 0); }, 50);
+            setTimeout(function() { window.scrollTo(0, 0); }, 200);
+
             // Chart rendering logic matching the view variables
-            @if (dashboardType == "Admin" && ViewBag.GrowthYears != null)
+            @if (dashboardType == "Admin" && ViewBag.GrowthMonths != null)
             {
                 <text>
                 const ctx1 = document.getElementById('growthChart').getContext('2d');
                 new Chart(ctx1, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
-                        labels: @Html.Raw(Json.Serialize(ViewBag.GrowthYears)),
+                        labels: @Html.Raw(Json.Serialize(ViewBag.GrowthMonths)),
                         datasets: [{
-                            label: 'Headcount Addition',
+                            label: 'Total Employees',
                             data: @Html.Raw(Json.Serialize(ViewBag.GrowthCounts)),
-                            backgroundColor: '#2563eb',
-                            borderRadius: 6
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#2563eb'
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+
+                const ctxAdminDept = document.getElementById('adminDeptChart').getContext('2d');
+                new Chart(ctxAdminDept, {
+                    type: 'pie',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(ViewBag.DeptNames)),
+                        datasets: [{
+                            data: @Html.Raw(Json.Serialize(ViewBag.DeptCounts)),
+                            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
                         }]
                     },
                     options: { responsive: true, maintainAspectRatio: false }
@@ -237,28 +437,6 @@
                         datasets: [{
                             data: @Html.Raw(Json.Serialize(ViewBag.LeaveStatusCounts)),
                             backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-                </text>
-            }
-
-            @if (dashboardType == "Employee" && ViewBag.TrendMonths != null)
-            {
-                <text>
-                const ctx4 = document.getElementById('myLeaveTrendChart').getContext('2d');
-                new Chart(ctx4, {
-                    type: 'line',
-                    data: {
-                        labels: @Html.Raw(Json.Serialize(ViewBag.TrendMonths)),
-                        datasets: [{
-                            label: 'Approved Days Count',
-                            data: @Html.Raw(Json.Serialize(ViewBag.TrendCounts)),
-                            borderColor: '#2563eb',
-                            backgroundColor: 'rgba(37, 99, 235, 0.05)',
-                            fill: true,
-                            tension: 0.3
                         }]
                     },
                     options: { responsive: true, maintainAspectRatio: false }

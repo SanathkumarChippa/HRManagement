@@ -1,36 +1,48 @@
 <!-- File Path: src/HRManagement.Web/Views/Profile/Index.cshtml -->
-<!-- Purpose: Logged-in user profile view. -->
-<!-- Code Explanation: Renders details of the currently authenticated employee. -->
+<!-- Purpose: Logged-in user profile page, enabling personal updates and photo upload. -->
 
 @model HRManagement.Domain.Entities.Employee
 @{
     ViewData["Title"] = "My Profile";
     ViewData["BreadcrumbActive"] = "My Profile";
+    var userRole = ViewBag.Role as string ?? "Employee";
 }
 
 <div class="row g-4">
     <!-- User summary card -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm p-4 text-center h-100" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
-            <div class="mx-auto bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
-                <span class="fs-1 fw-bold">@Model.FirstName[0]@Model.LastName[0]</span>
+            <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center mb-3 overflow-hidden shadow-sm border border-3 border-primary" style="width: 120px; height: 120px;">
+                @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
+                {
+                    <img src="@Model.ProfilePicturePath" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                }
+                else
+                {
+                    <div class="bg-primary-subtle text-primary w-100 h-100 d-flex align-items-center justify-content-center">
+                        <span class="fs-1 fw-bold">@Model.FirstName[0]@Model.LastName[0]</span>
+                    </div>
+                }
             </div>
+            
             <h4 class="fw-bold m-0">@Model.FirstName @Model.LastName</h4>
-            <p class="text-secondary small mb-3">@Model.Designation</p>
-            <span class="badge bg-success-subtle text-success px-3 py-2">@Model.EmploymentStatus</span>
+            <p class="text-secondary small mb-2">@Model.Designation</p>
+            <div class="mb-3">
+                <span class="badge bg-primary-subtle text-primary px-3 py-2">Role: @userRole</span>
+            </div>
 
             <hr class="my-4" style="border-color: var(--border-color);" />
 
             <div class="text-start">
-                <div class="mb-2">
+                <div class="mb-3">
                     <span class="text-secondary small d-block">Employee Code</span>
                     <span class="fw-semibold">@Model.EmployeeCode</span>
                 </div>
-                <div class="mb-2">
+                <div class="mb-3">
                     <span class="text-secondary small d-block">Department</span>
                     <span class="fw-semibold">@Model.Department?.Name</span>
                 </div>
-                <div class="mb-2">
+                <div class="mb-3">
                     <span class="text-secondary small d-block">Date of Joining</span>
                     <span class="fw-semibold">@Model.DateOfJoining.ToString("yyyy-MM-dd")</span>
                 </div>
@@ -42,8 +54,8 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm p-4 h-100" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
             <div class="mb-4">
-                <h4 class="fw-bold m-0">Account Details</h4>
-                <p class="text-secondary small m-0">Manage and review your corporate profile parameters.</p>
+                <h4 class="fw-bold m-0 text-gradient">Account Details</h4>
+                <p class="text-secondary small m-0">Manage and update your personal information.</p>
             </div>
 
             @if (TempData["SuccessMessage"] != null)
@@ -53,37 +65,76 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
 
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label text-secondary small">First Name</label>
-                    <input class="form-control" value="@Model.FirstName" disabled />
+            <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-semibold">First Name</label>
+                        <input name="firstName" class="form-control" value="@Model.FirstName" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-semibold">Last Name</label>
+                        <input name="lastName" class="form-control" value="@Model.LastName" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-semibold">Employee Code</label>
+                        <input class="form-control" value="@Model.EmployeeCode" readonly disabled />
+                        <span class="text-muted small d-block" style="font-size: 0.8rem; color: var(--text-secondary);">Employee code is system generated.</span>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info me-1"></i>This field cannot be modified.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-semibold">Email Address</label>
+                        <input class="form-control" value="@Model.Email" readonly disabled />
+                        <span class="text-muted small d-block" style="font-size: 0.8rem; color: var(--text-secondary);">Corporate email cannot be changed.</span>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info me-1"></i>This field cannot be modified.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-semibold">Phone Number</label>
+                        <input name="phoneNumber" class="form-control" value="@Model.PhoneNumber" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-semibold">Gender</label>
+                        <select name="gender" class="form-select" required>
+                            <option value="Male" selected="@(Model.Gender == "Male")">Male</option>
+                            <option value="Female" selected="@(Model.Gender == "Female")">Female</option>
+                            <option value="Other" selected="@(Model.Gender == "Other")">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small fw-semibold">Profile Photo</label>
+                        <input type="file" name="profilePhoto" class="form-control" accept="image/*" />
+                        <span class="text-muted small">Upload an image file (PNG, JPG).</span>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary small fw-semibold">Reports To (Manager)</label>
+                        <input class="form-control" value="@(Model.Manager != null ? $"{Model.Manager.FirstName} {Model.Manager.LastName}" : "None")" readonly disabled />
+                        <span class="text-muted small d-block" style="font-size: 0.8rem; color: var(--text-secondary);">Assigned by HR department.</span>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info me-1"></i>This field cannot be modified.</span>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label text-secondary small">Last Name</label>
-                    <input class="form-control" value="@Model.LastName" disabled />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label text-secondary small">Email Address</label>
-                    <input class="form-control" value="@Model.Email" disabled />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label text-secondary small">Phone Number</label>
-                    <input class="form-control" value="@Model.PhoneNumber" disabled />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label text-secondary small">Gender</label>
-                    <input class="form-control" value="@Model.Gender" disabled />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label text-secondary small">Reports To (Manager)</label>
-                    <input class="form-control" value="@(Model.Manager != null ? $"{Model.Manager.FirstName} {Model.Manager.LastName}" : "None")" disabled />
-                </div>
-            </div>
 
-            <div class="d-flex gap-3 justify-content-end mt-5">
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-floppy-disk me-2"></i>Save Profile</button>
+                </div>
+            </form>
+
+            <hr class="my-4" style="border-color: var(--border-color);" />
+
+            <div class="d-flex gap-3 justify-content-end">
                 <a asp-action="ChangePassword" class="btn btn-outline-primary"><i class="fa-solid fa-key me-2"></i>Change Password</a>
-                <a asp-action="Settings" class="btn btn-primary"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Settings" class="btn btn-outline-secondary"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+                }
             </div>
         </div>
     </div>

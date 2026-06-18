@@ -14,63 +14,76 @@
         <p class="text-secondary small m-0">Review transactional history and change tracking data across all databases.</p>
     </div>
 
-    <div class="table-responsive">
-        <table id="auditTable" class="table table-hover align-middle" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Table</th>
-                    <th>PK</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var log in Model)
-                {
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div class="mb-3 text-secondary" style="font-size: 3.5rem;">
+                <i class="fa-solid fa-receipt text-muted"></i>
+            </div>
+            <h5 class="fw-bold">No audit logs available</h5>
+            <p class="text-secondary small mb-0">System logs and change tracking histories are currently clear.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table id="auditTable" class="table table-hover align-middle" style="width:100%;">
+                <thead>
                     <tr>
-                        <td class="small text-secondary">@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                        <td><span class="fw-semibold">@log.UserId</span></td>
-                        <td>
-                            @switch (log.Action)
-                            {
-                                case "INSERT":
-                                    <span class="badge bg-success-subtle text-success px-2 py-1">Insert</span>
-                                    break;
-                                case "UPDATE":
-                                    <span class="badge bg-primary-subtle text-primary px-2 py-1">Update</span>
-                                    break;
-                                case "DELETE":
-                                    <span class="badge bg-danger-subtle text-danger px-2 py-1">Delete</span>
-                                    break;
-                                default:
-                                    <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@log.Action</span>
-                                    break;
-                            }
-                        </td>
-                        <td><code class="text-secondary fw-semibold">@log.TableName</code></td>
-                        <td>@log.PrimaryKey</td>
-                        <td>
-                            @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
-                            {
-                                <button class="btn btn-sm btn-outline-secondary view-details-btn" 
-                                        data-old="@log.OldValues" 
-                                        data-new="@log.NewValues" 
-                                        data-action="@log.Action">
-                                    <i class="fa-solid fa-code me-1"></i>View Changes
-                                </button>
-                            }
-                            else
-                            {
-                                <span class="text-muted small">No modifications</span>
-                            }
-                        </td>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Table</th>
+                        <th>PK</th>
+                        <th>Details</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td class="small text-secondary">@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td><span class="fw-semibold">@log.UserId</span></td>
+                            <td>
+                                @switch (log.Action)
+                                {
+                                    case "Create":
+                                        <span class="badge bg-success-subtle text-success px-2 py-1">Create</span>
+                                        break;
+                                    case "Update":
+                                        <span class="badge bg-primary-subtle text-primary px-2 py-1">Update</span>
+                                        break;
+                                    case "Delete":
+                                        <span class="badge bg-danger-subtle text-danger px-2 py-1">Delete</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@log.Action</span>
+                                        break;
+                                }
+                            </td>
+                            <td><code class="text-secondary fw-semibold">@log.TableName</code></td>
+                            <td>@log.PrimaryKey</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary view-details-btn" 
+                                            data-old="@log.OldValues" 
+                                            data-new="@log.NewValues" 
+                                            data-action="@log.Action">
+                                        <i class="fa-solid fa-code me-1"></i>View Changes
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No modifications</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
 
 @section Scripts {

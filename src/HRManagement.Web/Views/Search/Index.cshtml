@@ -1,0 +1,244 @@
+<!-- File Path: src/HRManagement.Web/Views/Search/Index.cshtml -->
+<!-- Purpose: Display global search results categorized by category type. -->
+
+@model HRManagement.Web.Controllers.SearchResultsViewModel
+@{
+    ViewData["Title"] = "Search Results";
+    ViewData["BreadcrumbActive"] = "Search Results";
+    
+    var totalResults = Model.Employees.Count + Model.Departments.Count + Model.AuditLogs.Count;
+}
+
+<div class="card border-0 shadow-sm p-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important; border-radius: 12px;">
+    <div class="mb-4">
+        <h4 class="fw-bold m-0"><i class="fa-solid fa-magnifying-glass text-primary me-2"></i>Global Search Results</h4>
+        @if (!string.IsNullOrEmpty(Model.Query))
+        {
+            <p class="text-secondary small m-0">Found <span class="badge bg-primary-subtle text-primary">@totalResults</span> match(es) for query: <span class="fw-bold text-dark">"@Model.Query"</span></p>
+        }
+        else
+        {
+            <p class="text-secondary small m-0">Enter a search query in the navigation search bar.</p>
+        }
+    </div>
+
+    @if (string.IsNullOrEmpty(Model.Query) || totalResults == 0)
+    {
+        <div class="text-center py-5">
+            <div class="mb-3 text-secondary" style="font-size: 3.5rem;">
+                <i class="fa-solid fa-folder-open text-muted"></i>
+            </div>
+            <h5 class="fw-bold">No results found</h5>
+            <p class="text-secondary small mb-0">Try searching for other terms like names, codes, or departments.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Tab Navigation -->
+        <ul class="nav nav-pills mb-4 gap-2 border-bottom pb-2" id="searchTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active btn-sm px-4 fw-medium" id="employees-tab" data-bs-toggle="pill" data-bs-target="#employees-results" type="button" role="tab" aria-controls="employees-results" aria-selected="true">
+                    <i class="fa-solid fa-users me-2"></i>Employees <span class="badge bg-dark-subtle ms-1">@Model.Employees.Count</span>
+                </button>
+            </li>
+            @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
+            {
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link btn-sm px-4 fw-medium" id="departments-tab" data-bs-toggle="pill" data-bs-target="#departments-results" type="button" role="tab" aria-controls="departments-results" aria-selected="false">
+                        <i class="fa-solid fa-sitemap me-2"></i>Departments <span class="badge bg-dark-subtle ms-1">@Model.Departments.Count</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link btn-sm px-4 fw-medium" id="audit-tab" data-bs-toggle="pill" data-bs-target="#audit-results" type="button" role="tab" aria-controls="audit-results" aria-selected="false">
+                        <i class="fa-solid fa-receipt me-2"></i>Audit Logs <span class="badge bg-dark-subtle ms-1">@Model.AuditLogs.Count</span>
+                    </button>
+                </li>
+            }
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="searchTabContent">
+            <!-- Employees Tab -->
+            <div class="tab-pane fade show active" id="employees-results" role="tabpanel" aria-labelledby="employees-tab">
+                @if (!Model.Employees.Any())
+                {
+                    <div class="text-center py-4 text-muted small">No matching employees found.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Designation</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var emp in Model.Employees)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold text-primary">@emp.EmployeeCode</td>
+                                        <td>@emp.FirstName @emp.LastName</td>
+                                        <td>@emp.Email</td>
+                                        <td>@emp.Department?.Name</td>
+                                        <td>@emp.Designation</td>
+                                        <td>
+                                            <span class="badge @(emp.EmploymentStatus == "Active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") px-3 py-2">
+                                                @emp.EmploymentStatus
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Employees" asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-secondary" title="View Profile"><i class="fa-solid fa-eye"></i></a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
+            {
+                <!-- Departments Tab -->
+                <div class="tab-pane fade" id="departments-results" role="tabpanel" aria-labelledby="departments-tab">
+                    @if (!Model.Departments.Any())
+                    {
+                        <div class="text-center py-4 text-muted small">No matching departments found.</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Department Name</th>
+                                        <th>Created Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var dept in Model.Departments)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@dept.Name</td>
+                                            <td>@dept.CreatedDate.ToString("yyyy-MM-dd")</td>
+                                            <td>
+                                                <a asp-controller="Departments" asp-action="Index" class="btn btn-sm btn-outline-secondary">Go to Departments</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <!-- Audit Logs Tab -->
+                <div class="tab-pane fade" id="audit-results" role="tabpanel" aria-labelledby="audit-tab">
+                    @if (!Model.AuditLogs.Any())
+                    {
+                        <div class="text-center py-4 text-muted small">No matching audit logs found.</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Table</th>
+                                        <th>PK</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in Model.AuditLogs)
+                                    {
+                                        <tr>
+                                            <td class="small text-secondary">@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                            <td><span class="fw-semibold">@log.UserId</span></td>
+                                            <td>
+                                                @switch (log.Action)
+                                                {
+                                                    case "Create":
+                                                        <span class="badge bg-success-subtle text-success px-2 py-1">Create</span>
+                                                        break;
+                                                    case "Update":
+                                                        <span class="badge bg-primary-subtle text-primary px-2 py-1">Update</span>
+                                                        break;
+                                                    case "Delete":
+                                                        <span class="badge bg-danger-subtle text-danger px-2 py-1">Delete</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@log.Action</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td><code class="text-secondary fw-semibold">@log.TableName</code></td>
+                                            <td>@log.PrimaryKey</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(log.OldValues) || !string.IsNullOrEmpty(log.NewValues))
+                                                {
+                                                    <button class="btn btn-sm btn-outline-secondary view-details-btn" 
+                                                            data-old="@log.OldValues" 
+                                                            data-new="@log.NewValues" 
+                                                            data-action="@log.Action">
+                                                        <i class="fa-solid fa-code me-1"></i>View Changes
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">No modifications</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.view-details-btn').on('click', function () {
+                var oldVals = $(this).data('old');
+                var newVals = $(this).data('new');
+                var action = $(this).data('action');
+
+                var oldHtml = oldVals ? '<pre class="text-start p-2 bg-dark text-white rounded small" style="max-height:180px; overflow-y:auto;">' + JSON.stringify(oldVals, null, 2) + '</pre>' : '<span class="text-muted">None</span>';
+                var newHtml = newVals ? '<pre class="text-start p-2 bg-dark text-white rounded small" style="max-height:180px; overflow-y:auto;">' + JSON.stringify(newVals, null, 2) + '</pre>' : '<span class="text-muted">None</span>';
+
+                Swal.fire({
+                    title: 'Audit Log Details (' + action + ')',
+                    html: '<div class="row text-start">' +
+                          '  <div class="col-md-6 mb-2">' +
+                          '    <label class="fw-bold small text-secondary">Old Values</label>' + oldHtml +
+                          '  </div>' +
+                          '  <div class="col-md-6 mb-2">' +
+                          '    <label class="fw-bold small text-secondary">New Values</label>' + newHtml +
+                          '  </div>' +
+                          '</div>',
+                    width: '750px',
+                    confirmButtonText: 'Close',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)'
+                });
+            });
+        });
+    </script>
+}

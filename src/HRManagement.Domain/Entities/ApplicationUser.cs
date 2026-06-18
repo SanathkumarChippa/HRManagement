@@ -15,5 +15,12 @@ namespace HRManagement.Domain.Entities
         // Link to Employee Profile if applicable
         public int? EmployeeId { get; set; }
         public virtual Employee? Employee { get; set; }
+
+        // Settings
+        public string ThemePreference { get; set; } = "light";
+        public bool EmailAlertsEnabled { get; set; } = true;
+        public bool InAppNotificationsEnabled { get; set; } = true;
+        public bool MustChangePassword { get; set; } = false;
+        public bool IsFirstLogin { get; set; } = true;
     }
 }

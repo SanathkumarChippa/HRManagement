@@ -2,6 +2,8 @@
 <!-- Purpose: User and Portal settings page. -->
 <!-- Code Explanation: Renders notification preference toggles and links into standard themes. -->
 
+@model HRManagement.Web.Models.SettingsViewModel
+
 @{
     ViewData["Title"] = "Portal Settings";
     ViewData["BreadcrumbActive"] = "Settings";
@@ -25,6 +27,7 @@
 
             <form asp-action="Settings" method="post">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="ThemePreference" id="ThemePreference" value="@Model.ThemePreference" />
 
                 <h5 class="fw-bold mb-3 mt-2">Display Mode</h5>
                 <div class="mb-4 p-3 rounded-3" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
@@ -45,13 +48,13 @@
                 <h5 class="fw-bold mb-3">Notification Rules</h5>
                 <div class="mb-4 p-3 rounded-3" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="emailNotifications" id="emailNotifications" checked value="true" />
+                        <input class="form-check-input" type="checkbox" asp-for="EmailAlertsEnabled" id="emailNotifications" />
                         <label class="form-check-label fw-semibold" for="emailNotifications">Email Alerts</label>
                         <div class="text-secondary small">Receive automatic notifications on leave requests and approvals via registered email.</div>
                     </div>
                     <hr style="border-color: var(--border-color);" />
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="inAppNotifications" id="inAppNotifications" checked value="true" />
+                        <input class="form-check-input" type="checkbox" asp-for="InAppNotificationsEnabled" id="inAppNotifications" />
                         <label class="form-check-label fw-semibold" for="inAppNotifications">In-App Banner Notifications</label>
                         <div class="text-secondary small">Show unread count indicators in top navigation headers.</div>
                     </div>
@@ -70,10 +73,16 @@
     <script>
         $(document).ready(function () {
             $('#settingsThemeToggle').on('click', function () {
-                var theme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-                toastr.info("Theme updated to " + theme + " mode.");
+                var currentTheme = $('html').attr('data-bs-theme') || 'light';
+                var theme = currentTheme === 'dark' ? 'light' : 'dark';
+                if (window.setThemePreference) {
+                    window.setThemePreference(theme);
+                } else {
+                    $('html').attr('data-bs-theme', theme);
+                    localStorage.setItem('theme', theme);
+                    $('#ThemePreference').val(theme);
+                }
+                toastr.info("Theme updated to " + theme + " mode. Click Save Configuration to persist.");
             });
         });
     </script>

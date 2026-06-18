@@ -19,10 +19,11 @@ namespace HRManagement.Domain.Entities
         public string Designation { get; set; } = string.Empty;
         public DateTime DateOfJoining { get; set; }
         public string EmploymentStatus { get; set; } = "Active"; // Active, Resigned, Terminated
+        public string? ProfilePicturePath { get; set; }
         
         // Foreign Keys
         public int DepartmentId { get; set; }
-        public virtual Department Department { get; set; } = null!;
+        public virtual Department? Department { get; set; }
 
         public int? ManagerId { get; set; }
         public virtual Employee? Manager { get; set; }

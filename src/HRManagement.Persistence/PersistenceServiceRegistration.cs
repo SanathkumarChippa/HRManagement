@@ -31,6 +31,7 @@ namespace HRManagement.Persistence
                 options.Password.RequiredLength = 8;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddClaimsPrincipalFactory<HRManagement.Persistence.Identity.ApplicationUserClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();

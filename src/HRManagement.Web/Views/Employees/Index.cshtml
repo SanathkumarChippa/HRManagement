@@ -14,53 +14,88 @@
             <h4 class="fw-bold m-0">Employee Directory</h4>
             <p class="text-secondary small m-0">View and manage staff details across the company.</p>
         </div>
-        @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
-        {
-            <a asp-action="Create" class="btn btn-primary btn-sm px-4"><i class="fa-solid fa-plus me-2"></i>Add Employee</a>
-        }
+        <div class="d-flex gap-2">
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="DeletedList" class="btn btn-outline-warning btn-sm px-4"><i class="fa-solid fa-trash-arrow-up me-2"></i>Deleted Employees</a>
+            }
+            @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
+            {
+                <a asp-action="Create" class="btn btn-primary btn-sm px-4"><i class="fa-solid fa-plus me-2"></i>Add Employee</a>
+            }
+        </div>
     </div>
 
-    <div class="table-responsive">
-        <table id="employeeTable" class="table table-hover align-middle" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Department</th>
-                    <th>Designation</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var emp in Model)
-                {
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div class="mb-3 text-secondary" style="font-size: 3.5rem;">
+                <i class="fa-solid fa-users-slash text-muted"></i>
+            </div>
+            <h5 class="fw-bold">No employees found</h5>
+            <p class="text-secondary small">There are no employee records registered in the directory.</p>
+            @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
+            {
+                <a asp-action="Create" class="btn btn-primary btn-sm px-4 mt-2"><i class="fa-solid fa-plus me-2"></i>Add Employee</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table id="employeeTable" class="table table-hover align-middle" style="width:100%;">
+                <thead>
                     <tr>
-                        <td class="fw-semibold text-primary">@emp.EmployeeCode</td>
-                        <td>@emp.FirstName @emp.LastName</td>
-                        <td>@emp.Email</td>
-                        <td>@emp.Department?.Name</td>
-                        <td>@emp.Designation</td>
-                        <td>
-                            <span class="badge @(emp.EmploymentStatus == "Active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") px-3 py-2">
-                                @emp.EmploymentStatus
-                            </span>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-2">
-                                <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-secondary" title="View Profile"><i class="fa-solid fa-eye"></i></a>
-                                @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
-                                {
-                                    <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-primary" title="Edit Profile"><i class="fa-solid fa-pen"></i></a>
-                                }
-                            </div>
-                        </td>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Designation</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var emp in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold text-primary">@emp.EmployeeCode</td>
+                            <td>@emp.FirstName @emp.LastName</td>
+                            <td>@emp.Email</td>
+                            <td>@emp.Department?.Name</td>
+                            <td>@emp.Designation</td>
+                            <td>
+                                <span class="badge @(emp.EmploymentStatus == "Active" ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") px-3 py-2">
+                                    @emp.EmploymentStatus
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-secondary" title="View Profile"><i class="fa-solid fa-eye"></i></a>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("HR Manager"))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-primary" title="Edit Profile"><i class="fa-solid fa-pen"></i></a>
+                                        <form asp-action="Delete" asp-route-id="@emp.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this employee?');" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Employee"><i class="fa-solid fa-trash"></i></button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
 
 @section Scripts {
@@ -73,6 +108,47 @@
                     searchPlaceholder: "Search staff..."
                 }
             });
+
+            @if (TempData["TempCredentialsEmail"] != null && TempData["TempCredentialsPassword"] != null)
+            {
+                var email = TempData["TempCredentialsEmail"] as string;
+                var password = TempData["TempCredentialsPassword"] as string;
+                var code = TempData["TempCredentialsCode"] as string ?? "N/A";
+                <text>
+                Swal.fire({
+                    title: '<strong>Employee Created Successfully</strong>',
+                    icon: 'success',
+                    html: `
+                        <div class="text-start p-2" style="font-size: 0.95rem; color: var(--text-primary);">
+                            <div class="mb-1 text-secondary small">Employee Code</div>
+                            <div class="p-2 bg-light text-dark rounded mb-3 border font-monospace" style="font-size: 0.9rem;">@code</div>
+                            
+                            <div class="mb-1 text-secondary small">Email Address</div>
+                            <div class="p-2 bg-light text-dark rounded mb-3 border font-monospace" style="font-size: 0.9rem;">@email</div>
+                            
+                            <div class="mb-1 text-secondary small">Temporary Password</div>
+                            <div class="p-2 bg-light text-dark rounded mb-3 border font-monospace" style="font-size: 0.9rem;">@password</div>
+                        </div>
+                        <p class="small text-secondary mb-0 text-center">Please copy these credentials before closing.</p>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-copy me-2"></i>Copy Credentials',
+                    cancelButtonText: 'Close',
+                    customClass: {
+                        confirmButton: 'btn btn-success me-2 px-3',
+                        cancelButton: 'btn btn-secondary px-3'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const text = "Employee Code: @code\nEmail: @email\nTemporary Password: @password";
+                        navigator.clipboard.writeText(text).then(() => {
+                            toastr.success('Credentials copied to clipboard!');
+                        });
+                    }
+                });
+                </text>
+            }
         });
     </script>
 }

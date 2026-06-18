@@ -2,8 +2,11 @@
 <!-- Purpose: Master layout file for the MVC application. -->
 <!-- Code Explanation: Implements light/dark mode preference evaluation inside <head> to prevent flashing. Links CSS and JS dependencies (Bootstrap, DataTables, SweetAlert2, Toastr, Chart.js) via CDNs, and structures sidebars and navbars around the dynamic RenderBody content. -->
 
+@{
+    var theme = Context.Request.Cookies["ThemePreference"] ?? "light";
+}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="@theme">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,6 +32,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     
     <!-- Custom Stylesheet -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -53,7 +57,7 @@
             <!-- Footer -->
             <footer class="py-3 px-4 border-top text-muted mt-auto" style="background-color: var(--bg-secondary); border-color: var(--border-color) !important;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <span>&copy; 2026 - HR Management & Workforce Analytics Platform</span>
+                    <span>&copy; 2026 - HR Management Platform</span>
                     <span>Version 1.0.0 (net8.0)</span>
                 </div>
             </footer>
@@ -70,33 +74,177 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/notifications.js"></script>
 
     <!-- Base UI Interactivity Scripts -->
     <script>
         $(document).ready(function () {
-            // Sidebar Toggle Control
-            $('#sidebarCollapse').on('click', function () {
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+
+            // Global Toastr Notifications
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <text>toastr.success('@TempData["SuccessMessage"]');</text>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <text>toastr.error('@TempData["ErrorMessage"]');</text>
+            }
+
+            // Restore Sidebar State from localStorage
+            if (localStorage.getItem('sidebarState') === 'collapsed') {
+                $('.sidebar').addClass('collapsed');
+            }
+
+            // Sidebar Toggle Control using Logo
+            $('.sidebar-brand').on('click', function () {
                 $('.sidebar').toggleClass('collapsed');
+                if ($('.sidebar').hasClass('collapsed')) {
+                    localStorage.setItem('sidebarState', 'collapsed');
+                } else {
+                    localStorage.setItem('sidebarState', 'expanded');
+                }
             });
 
-            // Dark Mode Selector
-            $('#themeToggle').on('click', function () {
-                let currentTheme = $('html').attr('data-bs-theme');
-                let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                $('html').attr('data-bs-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
+            // Unified Theme Preference Setter
+            window.setThemePreference = function (theme) {
+                $('html').attr('data-bs-theme', theme);
+                localStorage.setItem('theme', theme);
+                document.cookie = "ThemePreference=" + theme + ";path=/;max-age=31536000;samesite=lax";
                 
-                // Toggle toggle button visual indicator icon
-                $(this).find('i').toggleClass('fa-moon fa-sun');
+                // Keep Settings page hidden input in sync if present
+                const inputField = $('#ThemePreference');
+                if (inputField.length) {
+                    inputField.val(theme);
+                }
+
+                // Update the navbar button icon
+                const navbarIcon = $('#themeToggle i');
+                if (theme === 'dark') {
+                    navbarIcon.removeClass('fa-moon').addClass('fa-sun');
+                } else {
+                    navbarIcon.removeClass('fa-sun').addClass('fa-moon');
+                }
+            };
+
+            // Dark Mode Selector click handler
+            $('#themeToggle').on('click', function () {
+                let currentTheme = $('html').attr('data-bs-theme') || 'light';
+                let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                window.setThemePreference(newTheme);
                 toastr.success(`Switched to ${newTheme} mode.`);
             });
 
-            // Adjust default toggle icon state based on theme selection
-            if ($('html').attr('data-bs-theme') === 'dark') {
-                $('#themeToggle').find('i').removeClass('fa-moon').addClass('fa-sun');
-            }
+            // Adjust default toggle icon state based on current loaded theme
+            const currentThemeOnLoad = $('html').attr('data-bs-theme') || 'light';
+            window.setThemePreference(currentThemeOnLoad);
         });
     </script>
+    @if (User.Identity?.IsAuthenticated == true && User.FindFirst("MustChangePassword")?.Value == "true")
+    {
+        <div class="modal fade" id="mustChangePasswordModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="mustChangePasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow border-0" style="border-radius: 12px; background-color: var(--bg-secondary); border: 1px solid var(--border-color) !important;">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold text-gradient" id="mustChangePasswordModalLabel">Change Your Password</h5>
+                    </div>
+                    <div class="modal-body pt-2">
+                        <p class="text-secondary small mb-3">For security reasons you must change your temporary password before continuing.</p>
+                        
+                        <div id="modalChangePasswordErrors" class="alert alert-danger d-none small"></div>
+
+                        <form id="modalChangePasswordForm" method="post" action="/Profile/ChangePasswordJson">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label for="modalCurrentPassword" class="form-label fw-semibold" style="font-size: 0.85rem;">Current Password</label>
+                                <input type="password" name="CurrentPassword" id="modalCurrentPassword" class="form-control form-control-sm text-body bg-transparent" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="modalNewPassword" class="form-label fw-semibold" style="font-size: 0.85rem;">New Password</label>
+                                <input type="password" name="NewPassword" id="modalNewPassword" class="form-control form-control-sm text-body bg-transparent" required />
+                                <small class="text-secondary" style="font-size: 0.75rem;">Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="modalConfirmPassword" class="form-label fw-semibold" style="font-size: 0.85rem;">Confirm Password</label>
+                                <input type="password" name="ConfirmPassword" id="modalConfirmPassword" class="form-control form-control-sm text-body bg-transparent" required />
+                            </div>
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-sm">Change Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var modalEl = document.getElementById('mustChangePasswordModal');
+                var myModal = new bootstrap.Modal(modalEl, {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                myModal.show();
+
+                const form = document.getElementById('modalChangePasswordForm');
+                const errorDiv = document.getElementById('modalChangePasswordErrors');
+
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    errorDiv.classList.add('d-none');
+                    errorDiv.innerText = '';
+
+                    const currentPwd = document.getElementById('modalCurrentPassword').value;
+                    const newPwd = document.getElementById('modalNewPassword').value;
+                    const confPwd = document.getElementById('modalConfirmPassword').value;
+
+                    if (newPwd !== confPwd) {
+                        errorDiv.innerText = 'The new password and confirmation password do not match.';
+                        errorDiv.classList.remove('d-none');
+                        return;
+                    }
+
+                    if (newPwd.length < 8) {
+                        errorDiv.innerText = 'New password must be at least 8 characters long.';
+                        errorDiv.classList.remove('d-none');
+                        return;
+                    }
+
+                    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@@$!%*?&])[A-Za-z\d@@$!%*?&]{8,}$/;
+                    if (!regex.test(newPwd)) {
+                        errorDiv.innerText = 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.';
+                        errorDiv.classList.remove('d-none');
+                        return;
+                    }
+
+                    const formData = new FormData(form);
+                    fetch('/Profile/ChangePasswordJson', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            toastr.success('Password changed successfully!');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            errorDiv.innerText = data.message || 'An error occurred.';
+                            errorDiv.classList.remove('d-none');
+                        }
+                    })
+                    .catch(err => {
+                        errorDiv.innerText = 'Network error occurred.';
+                        errorDiv.classList.remove('d-none');
+                    });
+                });
+            });
+        </script>
+    }
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

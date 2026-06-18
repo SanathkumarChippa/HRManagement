@@ -15,7 +15,7 @@
     --text-secondary: #64748b;
     --border-color: #e2e8f0;
     --primary-color: #2563eb;
-    --sidebar-width: 260px;
+    --sidebar-width: 315px;
     --sidebar-collapsed-width: 70px;
 }
 
@@ -26,6 +26,52 @@
     --text-secondary: #94a3b8;
     --border-color: #334155;
     --primary-color: #3b82f6;
+}
+
+/* DataTables Modernization */
+.dt-container .dt-paging .pagination .page-item.active .page-link {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Global Typography & Micro-Animations */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+}
+
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.kpi-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+
+.table-hover tbody tr {
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.nav-link {
+    transition: all 0.2s ease;
 }
 
 body {
@@ -59,13 +105,22 @@ body {
 }
 
 .sidebar-brand {
-    padding: 1.5rem;
-    font-size: 1.25rem;
+    height: 72px;
+    padding: 0 1.5rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--primary-color);
     border-bottom: 1px solid var(--border-color);
     white-space: nowrap;
     overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.sidebar-brand:hover {
+    background-color: rgba(37, 99, 235, 0.05);
 }
 
 .sidebar-menu {
@@ -99,12 +154,23 @@ body {
     text-align: center;
 }
 
-.sidebar.collapsed .sidebar-menu li a span {
-    display: none;
+.sidebar-brand span,
+.sidebar-menu li a span {
+    transition: opacity var(--transition-speed) ease, max-width var(--transition-speed) ease;
+    display: inline-block;
+    opacity: 1;
+    max-width: 250px;
+    overflow: hidden;
+    vertical-align: middle;
 }
 
-.sidebar.collapsed .sidebar-brand span {
-    display: none;
+.sidebar.collapsed .sidebar-brand span,
+.sidebar.collapsed .sidebar-menu li a span {
+    opacity: 0;
+    max-width: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
 }
 
 /* Content Container */
@@ -116,9 +182,10 @@ body {
 }
 
 .navbar {
+    height: 72px;
     background-color: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
-    padding: 1rem 1.5rem;
+    padding: 0 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -177,4 +244,111 @@ body {
 [data-bs-theme="dark"] .glass-panel {
     background: rgba(30, 41, 59, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom Readonly and Disabled Fields UI Improvements */
+input[readonly],
+select[readonly],
+textarea[readonly],
+input[disabled],
+select[disabled],
+textarea[disabled],
+.form-control[readonly],
+.form-control[disabled],
+.form-select[readonly],
+.form-select[disabled] {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+}
+
+[data-bs-theme="dark"] input[readonly],
+[data-bs-theme="dark"] select[readonly],
+[data-bs-theme="dark"] textarea[readonly],
+[data-bs-theme="dark"] input[disabled],
+[data-bs-theme="dark"] select[disabled],
+[data-bs-theme="dark"] textarea[disabled],
+[data-bs-theme="dark"] .form-control[readonly],
+[data-bs-theme="dark"] .form-control[disabled],
+[data-bs-theme="dark"] .form-select[readonly],
+[data-bs-theme="dark"] .form-select[disabled] {
+    background-color: #1e293b !important;
+    color: #94a3b8 !important;
+    border-color: #334155 !important;
+}
+
+/* Solid Dropdown Menu to prevent transparency leak-through */
+.dropdown-menu {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    opacity: 1 !important;
+}
+
+/* High Contrast Theme-Aware Badges */
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+/* Light mode (default) badge styles */
+.badge.bg-primary-subtle {
+    background-color: rgba(37, 99, 235, 0.15) !important;
+    color: #1d4ed8 !important; /* Darker blue for light mode contrast */
+}
+.badge.bg-success-subtle {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #047857 !important; /* Darker green */
+}
+.badge.bg-danger-subtle {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #b91c1c !important; /* Darker red */
+}
+.badge.bg-warning-subtle {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #b45309 !important; /* Darker amber */
+}
+.badge.bg-info-subtle {
+    background-color: rgba(14, 165, 233, 0.15) !important;
+    color: #0369a1 !important; /* Darker sky blue */
+}
+.badge.bg-dark-subtle {
+    background-color: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+.badge.bg-secondary-subtle {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+}
+
+/* Dark mode badge styles */
+[data-bs-theme="dark"] .badge.bg-primary-subtle {
+    background-color: rgba(59, 130, 246, 0.25) !important;
+    color: #60a5fa !important; /* Lighter blue for dark mode contrast */
+}
+[data-bs-theme="dark"] .badge.bg-success-subtle {
+    background-color: rgba(16, 185, 129, 0.25) !important;
+    color: #34d399 !important; /* Lighter green */
+}
+[data-bs-theme="dark"] .badge.bg-danger-subtle {
+    background-color: rgba(239, 68, 68, 0.25) !important;
+    color: #f87171 !important; /* Lighter red */
+}
+[data-bs-theme="dark"] .badge.bg-warning-subtle {
+    background-color: rgba(245, 158, 11, 0.25) !important;
+    color: #fbbf24 !important; /* Lighter amber */
+}
+[data-bs-theme="dark"] .badge.bg-info-subtle {
+    background-color: rgba(14, 165, 233, 0.25) !important;
+    color: #38bdf8 !important; /* Lighter sky blue */
+}
+[data-bs-theme="dark"] .badge.bg-dark-subtle {
+    background-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+[data-bs-theme="dark"] .badge.bg-secondary-subtle {
+    background-color: #1e293b !important;
+    color: #94a3b8 !important;
 }

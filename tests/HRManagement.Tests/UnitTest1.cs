@@ -1,4 +1,4 @@
-﻿namespace HRManagement.Tests;
+namespace HRManagement.Tests;
 
 public class UnitTest1
 {

@@ -1,0 +1,30 @@
+@model dynamic
+
+<div class="dropdown">
+    <button class="btn btn-outline-secondary border-0 dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-user-circle fs-5 text-primary"></i>
+        <span class="d-none d-md-inline">@Model.FullName</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow border" aria-labelledby="userMenu">
+        <li class="px-3 py-2 border-bottom">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fa-solid fa-user-circle fs-2 text-secondary"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold">@Model.FullName</h6>
+                    <small class="text-muted">@Model.Role</small>
+                </div>
+            </div>
+        </li>
+        <li><a class="dropdown-item mt-2" asp-controller="Profile" asp-action="Index"><i class="fa-solid fa-address-card me-2"></i>My Profile</a></li>
+        @if (User.IsInRole("Admin"))
+        {
+            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Settings"><i class="fa-solid fa-sliders me-2"></i>Settings</a></li>
+        }
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-power-off me-2"></i>Sign Out</button>
+            </form>
+        </li>
+    </ul>
+</div>

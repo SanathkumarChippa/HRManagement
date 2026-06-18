@@ -18,6 +18,20 @@
                 <input type="hidden" asp-for="EmployeeCode" />
                 <input type="hidden" asp-for="DateOfJoining" />
 
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Employee Code</label>
+                        <input asp-for="EmployeeCode" class="form-control" readonly />
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem; color: var(--text-secondary);"><i class="fa-solid fa-circle-info me-1"></i>Employee code is system generated.</span>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info me-1"></i>This field cannot be modified.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Date of Joining</label>
+                        <input asp-for="DateOfJoining" type="date" class="form-control" readonly />
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info me-1"></i>This field cannot be modified.</span>
+                    </div>
+                </div>
+
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label asp-for="FirstName" class="form-label small fw-semibold">First Name</label>
@@ -31,7 +45,9 @@
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Email" class="form-label small fw-semibold">Email Address</label>
-                        <input asp-for="Email" type="email" class="form-control" required />
+                        <input asp-for="Email" type="email" class="form-control" readonly />
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem; color: var(--text-secondary);"><i class="fa-solid fa-circle-info me-1"></i>Corporate email cannot be changed.</span>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info me-1"></i>This field cannot be modified.</span>
                         <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
@@ -60,9 +76,12 @@
                     </div>
                     <div class="col-md-6">
                         <label asp-for="ManagerId" class="form-label small fw-semibold">Reporting Manager</label>
-                        <select asp-for="ManagerId" class="form-select" asp-items="ViewBag.ManagerId">
+                        <select asp-for="ManagerId" class="form-select" asp-items="ViewBag.ManagerId" disabled>
                             <option value="">Select Manager (None)</option>
                         </select>
+                        <input type="hidden" asp-for="ManagerId" />
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem; color: var(--text-secondary);"><i class="fa-solid fa-circle-info me-1"></i>Assigned by HR department.</span>
+                        <span class="text-secondary small d-block" style="font-size: 0.75rem;"><i class="fa-solid fa-circle-info me-1"></i>This field cannot be modified.</span>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="EmploymentStatus" class="form-label small fw-semibold">Employment Status</label>

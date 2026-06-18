@@ -145,6 +145,91 @@ namespace HRManagement.Persistence
                         await userManager.AddToRoleAsync(hrUser, "HR Manager");
                     }
                 }
+
+                // Seed Employee User (test.user@hrmanagement.com)
+                var employeeEmail = "test.user@hrmanagement.com";
+                var hrEmployeeRecord = await context.Employees.FirstOrDefaultAsync(e => e.Email == hrEmail);
+
+                var existingUser = await userManager.FindByEmailAsync(employeeEmail);
+                Employee? employeeRecord = await context.Employees.FirstOrDefaultAsync(e => e.Email == employeeEmail && !e.IsDeleted);
+
+                if (employeeRecord == null)
+                {
+                    employeeRecord = new Employee
+                    {
+                        EmployeeCode = "EMP-2026-0003",
+                        FirstName = "Test",
+                        LastName = "Employee",
+                        Email = employeeEmail,
+                        PhoneNumber = "555-019-2834",
+                        Gender = "Male",
+                        Designation = "Software Engineer",
+                        DateOfJoining = DateTime.UtcNow,
+                        EmploymentStatus = "Active",
+                        DepartmentId = itDept.Id,
+                        ManagerId = hrEmployeeRecord?.Id,
+                        CreatedBy = "System"
+                    };
+
+                    await context.Employees.AddAsync(employeeRecord);
+                    await context.SaveChangesAsync();
+                }
+
+                if (existingUser == null)
+                {
+                    var employeeUser = new ApplicationUser
+                    {
+                        UserName = employeeEmail,
+                        Email = employeeEmail,
+                        EmailConfirmed = true,
+                        IsActive = true,
+                        EmployeeId = employeeRecord.Id,
+                        MustChangePassword = true,
+                        IsFirstLogin = true
+                    };
+
+                    var result = await userManager.CreateAsync(employeeUser, "Employee@123");
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(employeeUser, "Employee");
+                    }
+                }
+                else if (!existingUser.EmployeeId.HasValue || existingUser.EmployeeId.Value != employeeRecord.Id)
+                {
+                    existingUser.EmployeeId = employeeRecord.Id;
+                    await userManager.UpdateAsync(existingUser);
+                }
+
+                // Seed Leave Balances for all seeded users (Admin, HR Manager, Employee)
+                var seededEmails = new[] { adminEmail, hrEmail, employeeEmail };
+                var leaveTypes = await context.LeaveTypes.ToListAsync();
+
+                foreach (var emailAddr in seededEmails)
+                {
+                    var emp = await context.Employees.FirstOrDefaultAsync(e => e.Email == emailAddr && !e.IsDeleted);
+                    if (emp != null)
+                    {
+                        foreach (var lt in leaveTypes)
+                        {
+                            var hasBalance = await context.LeaveBalances.AnyAsync(lb => lb.EmployeeId == emp.Id && lb.LeaveTypeId == lt.Id && lb.Year == DateTime.UtcNow.Year);
+                            if (!hasBalance)
+                            {
+                                var balance = new LeaveBalance
+                                {
+                                    EmployeeId = emp.Id,
+                                    LeaveTypeId = lt.Id,
+                                    AllocatedDays = lt.DefaultAllocationDays,
+                                    UsedDays = 0,
+                                    PendingDays = 0,
+                                    Year = DateTime.UtcNow.Year,
+                                    CreatedBy = "System"
+                                };
+                                await context.LeaveBalances.AddAsync(balance);
+                            }
+                        }
+                    }
+                }
+                await context.SaveChangesAsync();
             }
         }
     }

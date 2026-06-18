@@ -2,16 +2,61 @@
 <!-- Purpose: Top navigation navbar containing page level quick tools. -->
 <!-- Code Explanation: Renders sidebar toggle controls, theme toggle, and user authentication profile buttons. -->
 
+@inject HRManagement.Persistence.ApplicationDbContext _navbarContext
+@functions {
+    public string GetTimeAgoString(DateTime dateTime)
+    {
+        var timeSpan = DateTime.UtcNow - dateTime;
+
+        if (timeSpan <= TimeSpan.FromSeconds(60))
+            return "Just now";
+        if (timeSpan <= TimeSpan.FromMinutes(60))
+            return timeSpan.Minutes > 1 ? $"{timeSpan.Minutes} minutes ago" : "A minute ago";
+        if (timeSpan <= TimeSpan.FromHours(24))
+            return timeSpan.Hours > 1 ? $"{timeSpan.Hours} hours ago" : "An hour ago";
+        if (timeSpan <= TimeSpan.FromDays(30))
+            return timeSpan.Days > 1 ? $"{timeSpan.Days} days ago" : "Yesterday";
+
+        return dateTime.ToString("MMM dd, yyyy");
+    }
+}
+@{
+    var currentEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+    var currentEmp = !string.IsNullOrEmpty(currentEmail)
+        ? _navbarContext.Employees.FirstOrDefault(e => e.Email == currentEmail && !e.IsDeleted)
+        : null;
+
+    var initialNotifications = currentEmp != null
+        ? _navbarContext.Notifications
+            .Where(n => n.EmployeeId == currentEmp.Id && !n.IsDeleted)
+            .OrderByDescending(n => n.CreatedDate)
+            .Take(10)
+            .ToList()
+        : new List<HRManagement.Domain.Entities.Notification>();
+
+    var initialUnreadCount = currentEmp != null
+        ? _navbarContext.Notifications.Count(n => n.EmployeeId == currentEmp.Id && !n.IsRead && !n.IsDeleted)
+        : 0;
+}
+
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container-fluid p-0">
-        <!-- Sidebar Collapse Toggle Button -->
-        <button type="button" id="sidebarCollapse" class="btn btn-outline-secondary border-0 me-3">
-            <i class="fa-solid fa-bars"></i>
-        </button>
 
-        <span class="navbar-text fw-semibold d-none d-sm-inline-block text-secondary">
+        <span class="navbar-text fw-semibold d-none d-sm-inline-block text-secondary me-3">
             HR Management Platform
         </span>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <form class="d-none d-md-flex ms-2" asp-controller="Search" asp-action="Index" method="get" style="width: 260px;">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-end-0" style="border-radius: 20px 0 0 20px; border: 1px solid var(--border-color); color: var(--text-secondary);">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input class="form-control border-start-0 bg-transparent text-body" type="search" name="query" placeholder="Search directories..." aria-label="Search" style="border-radius: 0 20px 20px 0; border: 1px solid var(--border-color); font-size: 0.85rem;" required />
+                </div>
+            </form>
+        }
 
         <div class="ms-auto d-flex align-items-center">
             <!-- Theme Toggle Option -->
@@ -25,34 +70,48 @@
                 <div class="dropdown me-3">
                     <button class="btn btn-link nav-link position-relative text-secondary border-0 shadow-none" type="button" id="notifyDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa-solid fa-bell fs-5"></i>
-                        @await Component.InvokeAsync("UnreadNotificationCount")
+                        <span id="notifyBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="@(initialUnreadCount > 0 ? "" : "display:none;") font-size: 0.65em;">@initialUnreadCount</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notifyDropdown" style="width: 280px; max-height: 400px; overflow-y: auto;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border" aria-labelledby="notifyDropdown" style="width: 280px; max-height: 400px; overflow-y: auto;">
                         <li class="dropdown-header fw-bold border-bottom">Notifications</li>
                         <div id="notificationList">
-                            <!-- Dynamically loaded notification text rows -->
-                            <li class="p-3 text-center text-muted small">Loading...</li>
+                            @if (!initialNotifications.Any())
+                            {
+                                <li class="p-4 text-center text-muted">
+                                    <div class="mb-2 text-secondary" style="font-size: 2rem;">
+                                        <i class="fa-solid fa-bell-slash text-muted"></i>
+                                    </div>
+                                    <div class="fw-semibold small">No notifications available</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">We'll alert you when there are updates.</div>
+                                </li>
+                            }
+                            else
+                            {
+                                @foreach (var n in initialNotifications)
+                                {
+                                    var readClass = n.IsRead ? "text-muted" : "fw-bold text-dark";
+                                    var bgClass = n.IsRead ? "" : "bg-light";
+                                    <li class="border-bottom p-3 @bgClass" style="cursor: pointer;" onclick="markAsRead(@n.Id, '@(n.TargetUrl ?? "/Home/Index")')">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="@readClass">@n.Type</span>
+                                            <span class="small text-muted">@GetTimeAgoString(n.CreatedDate)</span>
+                                        </div>
+                                        <div class="small text-muted">@n.Message</div>
+                                    </li>
+                                }
+                                @if (initialUnreadCount > 0)
+                                {
+                                    <li class="p-2 text-center border-top">
+                                        <button class="btn btn-sm btn-link text-decoration-none w-100" onclick="markAllAsRead()">Mark all as read</button>
+                                    </li>
+                                }
+                            }
                         </div>
                     </ul>
                 </div>
 
                 <!-- User Account Dropdown -->
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary border-0 dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-user-circle fs-5 text-primary"></i>
-                        <span class="d-none d-md-inline">@User.Identity.Name</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenu">
-                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="fa-solid fa-address-card me-2"></i>My Profile</a></li>
-                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Settings"><i class="fa-solid fa-sliders me-2"></i>Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-power-off me-2"></i>Sign Out</button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
+                @await Component.InvokeAsync("UserProfile")
             }
             else
             {

@@ -11,7 +11,7 @@ using HRManagement.Persistence;
 
 namespace HRManagement.Web.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,HR Manager")]
     public class AuditController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -25,7 +25,31 @@ namespace HRManagement.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var logs = await _context.AuditLogs
+            var query = _context.AuditLogs.AsNoTracking();
+
+            if (User.IsInRole("HR Manager"))
+            {
+                var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+                if (adminRole != null)
+                {
+                    var adminUserIds = await _context.UserRoles
+                        .Where(ur => ur.RoleId == adminRole.Id)
+                        .Select(ur => ur.UserId)
+                        .ToListAsync();
+
+                    var adminUserEmails = await _context.Users
+                        .Where(u => adminUserIds.Contains(u.Id))
+                        .Select(u => u.Email)
+                        .ToListAsync();
+
+                    query = query.Where(l => 
+                        l.UserId == null || 
+                        (!adminUserEmails.Contains(l.UserId) && !adminUserIds.Contains(l.UserId) && l.UserId != "admin@hrmanagement.com")
+                    );
+                }
+            }
+
+            var logs = await query
                 .OrderByDescending(l => l.Timestamp)
                 .ToListAsync();
             return View(logs);

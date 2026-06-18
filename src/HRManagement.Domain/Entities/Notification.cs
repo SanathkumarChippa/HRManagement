@@ -14,5 +14,6 @@ namespace HRManagement.Domain.Entities
         public string Message { get; set; } = string.Empty;
         public bool IsRead { get; set; }
         public string Type { get; set; } = string.Empty; // System, LeaveRequest, Approval, Warning
+        public string? TargetUrl { get; set; }
     }
 }

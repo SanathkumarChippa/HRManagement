@@ -31,9 +31,11 @@ namespace HRManagement.Web.Controllers
 
         private async Task<Employee?> GetCurrentEmployeeAsync()
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
+                        ?? User.FindFirst("email")?.Value 
+                        ?? User.Identity?.Name;
             if (string.IsNullOrEmpty(email)) return null;
-            return await _context.Employees.FirstOrDefaultAsync(e => e.Email == email && !e.IsDeleted);
+            return await _context.Employees.FirstOrDefaultAsync(e => e.Email.ToUpper() == email.ToUpper() && !e.IsDeleted);
         }
 
         // GET: Leaves (Apply Form & Current Balances)
@@ -45,8 +47,39 @@ namespace HRManagement.Web.Controllers
                 return Challenge();
             }
 
+            var currentYear = DateTime.UtcNow.Year;
             var balances = await _unitOfWork.Leaves.GetLeaveBalancesByEmployeeAsync(employee.Id);
             var leaveTypes = await _context.LeaveTypes.Where(lt => !lt.IsDeleted).ToListAsync();
+            
+            var currentYearBalances = balances.Where(b => b.Year == currentYear).ToList();
+            bool hasChanges = false;
+
+            foreach (var lt in leaveTypes)
+            {
+                if (!currentYearBalances.Any(b => b.LeaveTypeId == lt.Id))
+                {
+                    var newBalance = new LeaveBalance
+                    {
+                        EmployeeId = employee.Id,
+                        LeaveTypeId = lt.Id,
+                        AllocatedDays = lt.DefaultAllocationDays,
+                        UsedDays = 0,
+                        PendingDays = 0,
+                        Year = currentYear,
+                        CreatedDate = DateTime.UtcNow,
+                        CreatedBy = "System-SelfHealing"
+                    };
+                    await _context.LeaveBalances.AddAsync(newBalance);
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges)
+            {
+                await _context.SaveChangesAsync();
+                // Reload balances
+                balances = await _unitOfWork.Leaves.GetLeaveBalancesByEmployeeAsync(employee.Id);
+            }
             
             ViewBag.LeaveTypeId = new SelectList(leaveTypes, "Id", "Name");
             ViewBag.Balances = balances;
@@ -123,7 +156,8 @@ namespace HRManagement.Web.Controllers
                     Message = $"{employee.FirstName} {employee.LastName} has requested {totalDays} day(s) of leave.",
                     IsRead = false,
                     Type = "LeaveRequest",
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    TargetUrl = "/Leaves/Queue"
                 };
                 await _context.Notifications.AddAsync(notification);
                 await _unitOfWork.SaveAsync();
@@ -209,7 +243,8 @@ namespace HRManagement.Web.Controllers
                 Message = $"Your leave request from {request.StartDate:yyyy-MM-dd} to {request.EndDate:yyyy-MM-dd} has been APPROVED.",
                 IsRead = false,
                 Type = "Approval",
-                CreatedDate = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow,
+                TargetUrl = "/Leaves/History"
             };
             await _context.Notifications.AddAsync(notification);
             await _unitOfWork.SaveAsync();
@@ -261,7 +296,8 @@ namespace HRManagement.Web.Controllers
                 Message = $"Your leave request from {request.StartDate:yyyy-MM-dd} to {request.EndDate:yyyy-MM-dd} has been REJECTED.",
                 IsRead = false,
                 Type = "Approval",
-                CreatedDate = DateTime.UtcNow
+                CreatedDate = DateTime.UtcNow,
+                TargetUrl = "/Leaves/History"
             };
             await _context.Notifications.AddAsync(notification);
             await _unitOfWork.SaveAsync();
